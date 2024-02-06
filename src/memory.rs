@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use crate::cpu::{Byte, Word};
 const MAX_MEM: usize = 1024 * 64;
 
@@ -9,5 +11,18 @@ pub struct Memory {
 impl Memory {
     pub fn initialize() -> Memory {
         Memory { data: [0; MAX_MEM] }
+    }
+}
+
+impl Index<Word> for Memory {
+    type Output = Byte;
+    fn index(&self, index: Word) -> &Self::Output {
+        &self.data[index as usize]
+    }
+}
+
+impl IndexMut<Word> for Memory {
+    fn index_mut(&mut self, index: Word) -> &mut Self::Output {
+        &mut self.data[index as usize]
     }
 }
