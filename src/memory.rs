@@ -26,3 +26,10 @@ impl IndexMut<Word> for Memory {
         &mut self.data[index as usize]
     }
 }
+
+impl Index<Byte> for Memory {
+    type Output = Byte;
+    fn index(&self, index: Byte) -> &Self::Output {
+        &self.data[index as usize]
+    }
+}

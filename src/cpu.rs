@@ -42,6 +42,11 @@ impl CPU {
         }
     }
 
+    pub fn lda_set_status(&mut self) {
+        self.zero = (self.a_register == 0);
+        self.negative = (self.a_register & 0b10000000) > 0;
+    }
+
     pub fn execute(&mut self, cycles: u32, memory: &mut Memory) -> Result<(), InstructionsError> {
         let mut cycles = cycles;
         while cycles > 0 {
@@ -50,8 +55,13 @@ impl CPU {
                 Instructions::InsLdaIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
                     self.a_register = value;
-                    self.zero = self.a_register == 0;
-                    self.negative = (self.a_register & 0b10000000) > 0;
+                    self.lda_set_status();
+                }
+                Instructions::InsLdaZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address);
+                    self.a_register = value;
+                    self.lda_set_status();
                 }
             }
         }
@@ -59,8 +69,14 @@ impl CPU {
     }
 
     pub fn fetch_byte(&mut self, cycles: &mut u32, memory: &mut Memory) -> Byte {
-        let data:Byte = memory[self.program_counter];
-        self.program_counter+= 1;
+        let data: Byte = memory[self.program_counter];
+        self.program_counter += 1;
+        *cycles -= 1;
+        data
+    }
+
+    pub fn read_byte(&self, cycles: &mut u32, memory: &mut Memory, address: Byte) -> Byte {
+        let data: Byte = memory[address];
         *cycles -= 1;
         data
     }
@@ -68,11 +84,12 @@ impl CPU {
 
 #[derive(Debug)]
 pub enum InstructionsError {
-    InstructionDoesntExist
+    InstructionDoesntExist(Byte),
 }
 
 pub enum Instructions {
-    InsLdaIm = 0xA9
+    InsLdaIm = 0xA9,
+    InsLdaZp = 0xA5,
 }
 
 impl TryFrom<Byte> for Instructions {
@@ -81,7 +98,8 @@ impl TryFrom<Byte> for Instructions {
     fn try_from(value: Byte) -> Result<Self, Self::Error> {
         match value {
             0xA9 => Ok(Self::InsLdaIm),
-            _ => Err(InstructionsError::InstructionDoesntExist),
+            0xA5 => Ok(Self::InsLdaZp),
+            _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }
 }
