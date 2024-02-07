@@ -12,6 +12,14 @@ impl Memory {
     pub fn initialize() -> Memory {
         Memory { data: [0; MAX_MEM] }
     }
+
+    pub fn write_word(&mut self, data: Word, address: Word, cycles: &mut u32) {
+        let data_bytes = data.to_le_bytes();
+        self[address] = data_bytes[0];
+        *cycles -= 1;
+        self[address + 1] = data_bytes[1];
+        *cycles -=1;
+    }
 }
 
 impl Index<Word> for Memory {
