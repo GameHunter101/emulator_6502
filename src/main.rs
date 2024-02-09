@@ -1,3 +1,4 @@
+#![allow(unused)]
 use cpu::{CPU, Instructions, Byte};
 use memory::Memory;
 
