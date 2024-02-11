@@ -1,5 +1,5 @@
 #![allow(unused)]
-use cpu::{CPU, Instructions, Byte};
+use cpu::{CPU, Instruction, Byte};
 use memory::Memory;
 
 mod cpu;

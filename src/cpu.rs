@@ -47,26 +47,36 @@ impl CPU {
         self.zero = self.a_register == 0;
         self.negative = (self.a_register & 0b10000000) > 0;
     }
+    
+    pub fn ldx_set_status(&mut self) {
+        self.zero = self.x_register == 0;
+        self.negative = (self.x_register & 0b10000000) > 0;
+    }
+
+    pub fn ldy_set_status(&mut self) {
+        self.zero = self.y_register == 0;
+        self.negative = (self.y_register & 0b10000000) > 0;
+    }
 
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
         let cycles_requested = cycles as i32;
         let mut cycles = cycles;
         while cycles > 0 {
-            let instruction_byte = Instructions::try_from(self.fetch_byte(&mut cycles, memory))?;
+            let instruction_byte = Instruction::try_from(self.fetch_byte(&mut cycles, memory))?;
             match instruction_byte {
-                Instructions::InsLdaIm => {
+                Instruction::InsLdaIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instructions::InsLdaZp => {
+                Instruction::InsLdaZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
                     let value =
                         self.read_byte_from_zero_page(&mut cycles, memory, zero_page_address);
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instructions::InsLdaZpx => {
+                Instruction::InsLdaZpx => {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
@@ -75,7 +85,7 @@ impl CPU {
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instructions::InsJsr => {
+                Instruction::InsJsr => {
                     let subroutine_address = self.fetch_word(&mut cycles, memory);
                     memory.write_word(
                         self.program_counter - 1,
@@ -87,13 +97,13 @@ impl CPU {
                     cycles -= 1;
                     self.lda_set_status();
                 }
-                Instructions::InsLdaAbs => {
+                Instruction::InsLdaAbs => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
                     let value = self.read_byte_absolute(&mut cycles, memory, absolute_address);
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instructions::InsLdaAbsX => {
+                Instruction::InsLdaAbsX => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
                     let absolute_address_x = absolute_address + self.x_register as Word;
 
@@ -104,7 +114,7 @@ impl CPU {
                     }
                     self.lda_set_status();
                 }
-                Instructions::InsLdaAbsY => {
+                Instruction::InsLdaAbsY => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
                     let absolute_address_y = absolute_address + self.y_register as Word;
 
@@ -115,19 +125,21 @@ impl CPU {
                     }
                     self.lda_set_status();
                 }
-                Instructions::InsLdaIndX => {
+                Instruction::InsLdaIndX => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
                     let zero_page_address_x = zero_page_address + self.x_register;
                     cycles -= 1;
-                    let absolute_address = self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
+                    let absolute_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
 
                     let value = self.read_byte_absolute(&mut cycles, memory, absolute_address);
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instructions::InsLdaIndY => {
+                Instruction::InsLdaIndY => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let absolute_address = self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let absolute_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
 
                     let absolute_address_y = absolute_address + self.y_register as Word;
 
@@ -137,6 +149,82 @@ impl CPU {
                         cycles -= 1;
                     }
                     self.lda_set_status();
+                }
+                Instruction::InsLdxIm => {
+                    let value = self.fetch_byte(&mut cycles, memory);
+                    self.x_register = value;
+                    self.ldx_set_status();
+                }
+                Instruction::InsLdxZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value =
+                        self.read_byte_from_zero_page(&mut cycles, memory, zero_page_address);
+                    self.x_register = value;
+                    self.ldx_set_status();
+                }
+                Instruction::InsLdxZpy => {
+                    let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    zero_page_address = zero_page_address.wrapping_add(self.y_register);
+                    cycles -= 1;
+                    let value =
+                        self.read_byte_from_zero_page(&mut cycles, memory, zero_page_address);
+                    self.x_register = value;
+                    self.ldx_set_status();
+                }
+                Instruction::InsLdxAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte_absolute(&mut cycles, memory, absolute_address);
+                    self.x_register = value;
+                    self.ldx_set_status();
+                }
+                Instruction::InsLdxAbsY => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_y = absolute_address + self.y_register as Word;
+
+                    let value = self.read_byte_absolute(&mut cycles, memory, absolute_address_y);
+                    self.x_register = value;
+                    if absolute_address_y / 255 != absolute_address / 255 {
+                        cycles -= 1;
+                    }
+                    self.ldx_set_status();
+                }
+                Instruction::InsLdyIm => {
+                    let value = self.fetch_byte(&mut cycles, memory);
+                    self.y_register = value;
+                    self.ldy_set_status();
+                }
+                Instruction::InsLdyZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value =
+                        self.read_byte_from_zero_page(&mut cycles, memory, zero_page_address);
+                    self.y_register = value;
+                    self.ldy_set_status();
+                }
+                Instruction::InsLdyZpx => {
+                    let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    zero_page_address = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let value =
+                        self.read_byte_from_zero_page(&mut cycles, memory, zero_page_address);
+                    self.y_register = value;
+                    self.ldy_set_status();
+                }
+                Instruction::InsLdyAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte_absolute(&mut cycles, memory, absolute_address);
+                    self.y_register = value;
+                    self.ldy_set_status();
+                }
+                Instruction::InsLdyAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+
+                    let value = self.read_byte_absolute(&mut cycles, memory, absolute_address_x);
+                    self.y_register = value;
+                    if absolute_address_x / 255 != absolute_address / 255 {
+                        cycles -= 1;
+                    }
+                    self.ldy_set_status();
                 }
                 _ => {}
             }
@@ -182,7 +270,12 @@ impl CPU {
         data
     }
 
-    pub fn read_word_from_zero_page(&self, cycles: &mut i32, memory: &mut Memory, address: Byte) -> Word {
+    pub fn read_word_from_zero_page(
+        &self,
+        cycles: &mut i32,
+        memory: &mut Memory,
+        address: Byte,
+    ) -> Word {
         let low_byte = memory[address] as Word;
         *cycles -= 1;
 
@@ -210,7 +303,8 @@ pub enum InstructionsError {
     InstructionDoesntExist(Byte),
 }
 
-pub enum Instructions {
+pub enum Instruction {
+    // LDA
     InsLdaIm = 0xA9,
     InsLdaZp = 0xA5,
     InsLdaZpx = 0xB5,
@@ -219,14 +313,28 @@ pub enum Instructions {
     InsLdaAbsY = 0xB9,
     InsLdaIndX = 0xA1,
     InsLdaIndY = 0xB1,
+    // LDX
+    InsLdxIm = 0xA2,
+    InsLdxZp = 0xA6,
+    InsLdxZpy = 0xB6,
+    InsLdxAbs = 0xAE,
+    InsLdxAbsY = 0xBE,
+    // LDY
+    InsLdyIm = 0xA0,
+    InsLdyZp = 0xA4,
+    InsLdyZpx = 0xB4,
+    InsLdyAbs = 0xAC,
+    InsLdyAbsX = 0xBC,
+    // Jumps
     InsJsr = 0x20,
 }
 
-impl TryFrom<Byte> for Instructions {
+impl TryFrom<Byte> for Instruction {
     type Error = InstructionsError;
 
     fn try_from(value: Byte) -> Result<Self, Self::Error> {
         match value {
+            // LDA
             0xA9 => Ok(Self::InsLdaIm),
             0xA5 => Ok(Self::InsLdaZp),
             0xB5 => Ok(Self::InsLdaZpx),
@@ -235,6 +343,19 @@ impl TryFrom<Byte> for Instructions {
             0xB9 => Ok(Self::InsLdaAbsY),
             0xA1 => Ok(Self::InsLdaIndX),
             0xB1 => Ok(Self::InsLdaIndY),
+            // LDX
+            0xA2 => Ok(Self::InsLdxIm),
+            0xA6 => Ok(Self::InsLdxZp),
+            0xB6 => Ok(Self::InsLdxZpy),
+            0xAE => Ok(Self::InsLdxAbs),
+            0xBE => Ok(Self::InsLdxAbsY),
+            // LDY
+            0xA0 => Ok(Self::InsLdyIm),
+            0xA4 => Ok(Self::InsLdyZp),
+            0xB4 => Ok(Self::InsLdyZpx),
+            0xAC => Ok(Self::InsLdyAbs),
+            0xBC => Ok(Self::InsLdyAbsX),
+            // Jumps
             0x20 => Ok(Self::InsJsr),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
