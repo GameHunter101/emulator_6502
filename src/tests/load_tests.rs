@@ -6,13 +6,13 @@ use crate::{
 static mut CPU: CPU = CPU::reset();
 static mut MEMORY: Memory = Memory::initialize();
 
-enum RegisterToTest {
+pub enum RegisterToTest {
     A,
     X,
     Y,
 }
 
-unsafe fn verify_unmodified_flags_lda(cpu_copy: &CPU) {
+unsafe fn verify_unmodified_flags(cpu_copy: &CPU) {
     assert_eq!(CPU.carry, cpu_copy.carry);
     assert_eq!(CPU.interupt_disable, cpu_copy.interupt_disable);
     assert_eq!(CPU.decimal_mode, cpu_copy.decimal_mode);
@@ -67,7 +67,7 @@ fn test_loading_register_immediate(opcode: Instruction, register_to_test: Regist
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, true);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -93,7 +93,7 @@ fn test_loading_register_zero_page(opcode: Instruction, register_to_test: Regist
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -129,7 +129,7 @@ fn test_loading_register_zero_page_plus_register(
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -165,7 +165,7 @@ fn test_loading_register_zero_page_plus_register_when_wrap(
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -192,7 +192,7 @@ fn test_loading_register_absolute(opcode: Instruction, register_to_test: Registe
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -229,7 +229,7 @@ fn test_loading_register_absolute_plus_register(
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -266,7 +266,7 @@ fn test_loading_register_absolute_plus_register_when_crossing_page_boundary(
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -294,7 +294,7 @@ fn lda_immediate_can_affect_zero_flag() {
         assert_eq!(CPU.zero, true);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -385,7 +385,7 @@ fn lda_indirect_x_can_load_value() {
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -412,7 +412,7 @@ fn lda_indirect_y_can_load_value() {
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -439,7 +439,7 @@ fn lda_indirect_y_can_load_value_when_crossing_page_boundary() {
         assert_eq!(CPU.zero, false);
         assert_eq!(CPU.negative, false);
 
-        verify_unmodified_flags_lda(&cpu_copy);
+        verify_unmodified_flags(&cpu_copy);
     }
 }
 
@@ -457,12 +457,20 @@ fn ldx_zero_page_can_load_value() {
 
 #[test]
 fn ldx_zero_page_y_can_load_value() {
-    test_loading_register_zero_page_plus_register(Instruction::InsLdxZpy, RegisterToTest::X, RegisterToTest::Y);
+    test_loading_register_zero_page_plus_register(
+        Instruction::InsLdxZpy,
+        RegisterToTest::X,
+        RegisterToTest::Y,
+    );
 }
 
 #[test]
 fn ldx_zero_page_y_can_load_value_when_wrap() {
-    test_loading_register_zero_page_plus_register_when_wrap(Instruction::InsLdxZpy, RegisterToTest::X, RegisterToTest::Y);
+    test_loading_register_zero_page_plus_register_when_wrap(
+        Instruction::InsLdxZpy,
+        RegisterToTest::X,
+        RegisterToTest::Y,
+    );
 }
 
 #[test]
@@ -472,12 +480,20 @@ fn ldx_absolute_can_load_value() {
 
 #[test]
 fn ldx_absolute_y_can_load_value() {
-    test_loading_register_absolute_plus_register(Instruction::InsLdxAbsY, RegisterToTest::X, RegisterToTest::Y);
+    test_loading_register_absolute_plus_register(
+        Instruction::InsLdxAbsY,
+        RegisterToTest::X,
+        RegisterToTest::Y,
+    );
 }
 
 #[test]
 fn ldx_absolute_y_can_load_value_when_crossing_page_boundary() {
-    test_loading_register_absolute_plus_register_when_crossing_page_boundary(Instruction::InsLdxAbsY, RegisterToTest::X, RegisterToTest::Y);
+    test_loading_register_absolute_plus_register_when_crossing_page_boundary(
+        Instruction::InsLdxAbsY,
+        RegisterToTest::X,
+        RegisterToTest::Y,
+    );
 }
 
 // LDY
@@ -494,12 +510,20 @@ fn ldy_zero_page_can_load_value() {
 
 #[test]
 fn ldy_zero_page_x_can_load_value() {
-    test_loading_register_zero_page_plus_register(Instruction::InsLdyZpx, RegisterToTest::Y, RegisterToTest::X);
+    test_loading_register_zero_page_plus_register(
+        Instruction::InsLdyZpx,
+        RegisterToTest::Y,
+        RegisterToTest::X,
+    );
 }
 
 #[test]
 fn ldy_zero_page_x_can_load_value_when_wrap() {
-    test_loading_register_zero_page_plus_register_when_wrap(Instruction::InsLdyZpx, RegisterToTest::Y, RegisterToTest::X);
+    test_loading_register_zero_page_plus_register_when_wrap(
+        Instruction::InsLdyZpx,
+        RegisterToTest::Y,
+        RegisterToTest::X,
+    );
 }
 
 #[test]
@@ -509,10 +533,18 @@ fn ldy_absolute_can_load_value() {
 
 #[test]
 fn ldy_absolute_x_can_load_value() {
-    test_loading_register_absolute_plus_register(Instruction::InsLdyAbsX, RegisterToTest::Y, RegisterToTest::X);
+    test_loading_register_absolute_plus_register(
+        Instruction::InsLdyAbsX,
+        RegisterToTest::Y,
+        RegisterToTest::X,
+    );
 }
 
 #[test]
 fn ldy_absolute_x_can_load_value_when_crossing_page_boundary() {
-    test_loading_register_absolute_plus_register_when_crossing_page_boundary(Instruction::InsLdyAbsX, RegisterToTest::Y,RegisterToTest::X);
+    test_loading_register_absolute_plus_register_when_crossing_page_boundary(
+        Instruction::InsLdyAbsX,
+        RegisterToTest::Y,
+        RegisterToTest::X,
+    );
 }

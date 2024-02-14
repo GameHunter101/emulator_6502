@@ -6,7 +6,10 @@ mod cpu;
 mod memory;
 
 #[cfg(test)]
-mod tests;
+mod tests {
+    pub mod load_tests;
+    pub mod store_tests;
+}
 
 fn main() {
 }
