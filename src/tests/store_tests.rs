@@ -94,7 +94,7 @@ fn test_store_absolute(opcode: Instruction, register_to_test: RegisterToTest) {
 
         assert_eq!(cycles, Ok(4));
 
-        assert_eq!(MEMORY[0x8044_u16], 0x002F);
+        assert_eq!(MEMORY[0x4480_u16], 0x002F);
 
         verify_unmodified_flags(&cpu_copy);
     }
@@ -176,16 +176,16 @@ fn sta_indirect_x_can_store_value() {
         CPU.a_register = 0x2F;
         CPU.x_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaAbsY as Byte;
+        MEMORY[0xFFFC] = Instruction::InsStaIndX as Byte;
         MEMORY[0xFFFD] = 0x80;
         MEMORY[0x84] = 0x80;
         MEMORY[0x85] = 0x44;
 
         let cpu_copy = CPU.clone();
 
-        let cycles = CPU.execute(5, &mut MEMORY);
+        let cycles = CPU.execute(6, &mut MEMORY);
 
-        assert_eq!(cycles, Ok(5));
+        assert_eq!(cycles, Ok(6));
 
         assert_eq!(MEMORY[0x4480_u16], 0x002F);
 
@@ -201,16 +201,16 @@ fn sta_indirect_y_can_store_value() {
         CPU.a_register = 0x2F;
         CPU.y_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaAbsY as Byte;
+        MEMORY[0xFFFC] = Instruction::InsStaIndY as Byte;
         MEMORY[0xFFFD] = 0x80;
         MEMORY[0x80] = 0x80;
         MEMORY[0x81] = 0x44;
 
         let cpu_copy = CPU.clone();
 
-        let cycles = CPU.execute(5, &mut MEMORY);
+        let cycles = CPU.execute(6, &mut MEMORY);
 
-        assert_eq!(cycles, Ok(5));
+        assert_eq!(cycles, Ok(6));
 
         assert_eq!(MEMORY[0x4484_u16], 0x002F);
 

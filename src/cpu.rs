@@ -47,7 +47,7 @@ impl CPU {
         self.zero = self.a_register == 0;
         self.negative = (self.a_register & 0b10000000) > 0;
     }
-    
+
     pub fn ldx_set_status(&mut self) {
         self.zero = self.x_register == 0;
         self.negative = (self.x_register & 0b10000000) > 0;
@@ -58,13 +58,13 @@ impl CPU {
         self.negative = (self.y_register & 0b10000000) > 0;
     }
 
-
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
         let cycles_requested = cycles as i32;
         let mut cycles = cycles;
         while cycles > 0 {
             let instruction_byte = Instruction::try_from(self.fetch_byte(&mut cycles, memory))?;
             match instruction_byte {
+                // LDA
                 Instruction::InsLdaIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
                     self.a_register = value;
@@ -72,8 +72,7 @@ impl CPU {
                 }
                 Instruction::InsLdaZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.a_register = value;
                     self.lda_set_status();
                 }
@@ -81,21 +80,8 @@ impl CPU {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.a_register = value;
-                    self.lda_set_status();
-                }
-                Instruction::InsJsr => {
-                    let subroutine_address = self.fetch_word(&mut cycles, memory);
-                    memory.write_word(
-                        self.program_counter - 1,
-                        self.stack_pointer as Word + 0xFF,
-                        &mut cycles,
-                    );
-                    self.stack_pointer += 1;
-                    self.program_counter = subroutine_address;
-                    cycles -= 1;
                     self.lda_set_status();
                 }
                 Instruction::InsLdaAbs => {
@@ -151,6 +137,7 @@ impl CPU {
                     }
                     self.lda_set_status();
                 }
+                // LDX
                 Instruction::InsLdxIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
                     self.x_register = value;
@@ -158,8 +145,7 @@ impl CPU {
                 }
                 Instruction::InsLdxZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.x_register = value;
                     self.ldx_set_status();
                 }
@@ -167,8 +153,7 @@ impl CPU {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.y_register);
                     cycles -= 1;
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.x_register = value;
                     self.ldx_set_status();
                 }
@@ -189,6 +174,7 @@ impl CPU {
                     }
                     self.ldx_set_status();
                 }
+                // LDY
                 Instruction::InsLdyIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
                     self.y_register = value;
@@ -196,8 +182,7 @@ impl CPU {
                 }
                 Instruction::InsLdyZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.y_register = value;
                     self.ldy_set_status();
                 }
@@ -205,8 +190,7 @@ impl CPU {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
-                    let value =
-                        self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
                     self.y_register = value;
                     self.ldy_set_status();
                 }
@@ -227,6 +211,91 @@ impl CPU {
                     }
                     self.ldy_set_status();
                 }
+                // Jumps
+                Instruction::InsJsr => {
+                    let subroutine_address = self.fetch_word(&mut cycles, memory);
+                    memory.write_word(
+                        self.program_counter - 1,
+                        self.stack_pointer as Word + 0xFF,
+                        &mut cycles,
+                    );
+                    self.stack_pointer += 1;
+                    self.program_counter = subroutine_address;
+                    cycles -= 1;
+                    self.lda_set_status();
+                }
+                // STA
+                Instruction::InsStaZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    memory.write_byte(self.a_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStaZpx => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
+                    cycles -= 1;
+                    memory.write_byte(self.a_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStaAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                }
+                Instruction::InsStaAbsX => {
+                    let absolute_address =
+                        self.fetch_word(&mut cycles, memory) + self.x_register as Word;
+                    cycles -= 1;
+                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                }
+                Instruction::InsStaAbsY => {
+                    let absolute_address =
+                        self.fetch_word(&mut cycles, memory) + self.y_register as Word;
+                    cycles -= 1;
+                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                }
+                Instruction::InsStaIndX => {
+                    let zero_page_address = self
+                        .fetch_byte(&mut cycles, memory)
+                        .wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let indexed_indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    memory.write_byte(self.a_register, indexed_indirect_address, &mut cycles);
+                }
+                Instruction::InsStaIndY => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let indirect_indexed_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address)
+                            + self.y_register as Word;
+                    cycles -= 1;
+                    memory.write_byte(self.a_register, indirect_indexed_address, &mut cycles);
+                }
+                // STX
+                Instruction::InsStxZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    memory.write_byte(self.x_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStxZpy => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.y_register;
+                    cycles -= 1;
+                    memory.write_byte(self.x_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStxAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    memory.write_byte(self.x_register, absolute_address, &mut cycles);
+                }
+                // STY
+                Instruction::InsStyZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    memory.write_byte(self.y_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStyZpx => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
+                    cycles -= 1;
+                    memory.write_byte(self.y_register, zero_page_address as Word, &mut cycles);
+                }
+                Instruction::InsStyAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    memory.write_byte(self.y_register, absolute_address, &mut cycles);
+                }
+
                 _ => {}
             }
         }
@@ -254,12 +323,7 @@ impl CPU {
         data
     }
 
-    pub fn read_byte(
-        &self,
-        cycles: &mut i32,
-        memory: &mut Memory,
-        address: Word,
-    ) -> Byte {
+    pub fn read_byte(&self, cycles: &mut i32, memory: &mut Memory, address: Word) -> Byte {
         let data: Byte = memory[address];
         *cycles -= 1;
         data
@@ -382,7 +446,7 @@ impl TryFrom<Byte> for Instruction {
             0x8E => Ok(Self::InsStxAbs),
             // STY
             0x84 => Ok(Self::InsStyZp),
-            0x95 => Ok(Self::InsStyZpx),
+            0x94 => Ok(Self::InsStyZpx),
             0x8C => Ok(Self::InsStyAbs),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }

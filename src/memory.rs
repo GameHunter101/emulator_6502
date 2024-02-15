@@ -20,6 +20,11 @@ impl Memory {
         self[address + 1] = data_bytes[1];
         *cycles -=1;
     }
+
+    pub fn write_byte(&mut self, data: Byte, address: Word, cycles: &mut i32) {
+        self[address] = data;
+        *cycles -= 1;
+    }
 }
 
 impl Index<Word> for Memory {
