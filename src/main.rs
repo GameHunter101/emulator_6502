@@ -9,6 +9,7 @@ mod memory;
 mod tests {
     pub mod load_tests;
     pub mod store_tests;
+    pub mod jumps_and_calls_tests;
 }
 
 fn main() {

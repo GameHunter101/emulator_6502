@@ -26,10 +26,14 @@ pub struct CPU {
 }
 
 impl CPU {
-    pub const fn reset() -> CPU {
+    pub const fn reset(reset_vector: Option<Word>) -> CPU {
+        let program_counter = match reset_vector {
+            Some(address) => address,
+            None => 0xFFFC,
+        };
         CPU {
-            program_counter: 0xFFFC,
-            stack_pointer: 0,
+            program_counter,
+            stack_pointer: 0xFF,
             a_register: 0,
             x_register: 0,
             y_register: 0,
@@ -214,41 +218,50 @@ impl CPU {
                 // Jumps
                 Instruction::InsJsr => {
                     let subroutine_address = self.fetch_word(&mut cycles, memory);
-                    memory.write_word(
-                        self.program_counter - 1,
-                        self.stack_pointer as Word + 0xFF,
-                        &mut cycles,
-                    );
-                    self.stack_pointer += 1;
+                    self.push_program_counter_to_stack(&mut cycles, memory);
                     self.program_counter = subroutine_address;
-                    cycles -= 1;
                     self.lda_set_status();
+                }
+                Instruction::InsRts => {
+                    let return_address = self.pop_word_from_stack(&mut cycles, memory);
+                    self.program_counter = return_address + 1;
+                    cycles -= 2;
                 }
                 // STA
                 Instruction::InsStaZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    memory.write_byte(self.a_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.a_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStaZpx => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
                     cycles -= 1;
-                    memory.write_byte(self.a_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.a_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStaAbs => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
-                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                    self.write_byte(self.a_register, absolute_address, &mut cycles, memory);
                 }
                 Instruction::InsStaAbsX => {
                     let absolute_address =
                         self.fetch_word(&mut cycles, memory) + self.x_register as Word;
                     cycles -= 1;
-                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                    self.write_byte(self.a_register, absolute_address, &mut cycles, memory);
                 }
                 Instruction::InsStaAbsY => {
                     let absolute_address =
                         self.fetch_word(&mut cycles, memory) + self.y_register as Word;
                     cycles -= 1;
-                    memory.write_byte(self.a_register, absolute_address, &mut cycles);
+                    self.write_byte(self.a_register, absolute_address, &mut cycles, memory);
                 }
                 Instruction::InsStaIndX => {
                     let zero_page_address = self
@@ -257,7 +270,12 @@ impl CPU {
                     cycles -= 1;
                     let indexed_indirect_address =
                         self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
-                    memory.write_byte(self.a_register, indexed_indirect_address, &mut cycles);
+                    self.write_byte(
+                        self.a_register,
+                        indexed_indirect_address,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStaIndY => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
@@ -265,35 +283,60 @@ impl CPU {
                         self.read_word_from_zero_page(&mut cycles, memory, zero_page_address)
                             + self.y_register as Word;
                     cycles -= 1;
-                    memory.write_byte(self.a_register, indirect_indexed_address, &mut cycles);
+                    self.write_byte(
+                        self.a_register,
+                        indirect_indexed_address,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 // STX
                 Instruction::InsStxZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    memory.write_byte(self.x_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.x_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStxZpy => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.y_register;
                     cycles -= 1;
-                    memory.write_byte(self.x_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.x_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStxAbs => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
-                    memory.write_byte(self.x_register, absolute_address, &mut cycles);
+                    self.write_byte(self.x_register, absolute_address, &mut cycles, memory);
                 }
                 // STY
                 Instruction::InsStyZp => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    memory.write_byte(self.y_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.y_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStyZpx => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
                     cycles -= 1;
-                    memory.write_byte(self.y_register, zero_page_address as Word, &mut cycles);
+                    self.write_byte(
+                        self.y_register,
+                        zero_page_address as Word,
+                        &mut cycles,
+                        memory,
+                    );
                 }
                 Instruction::InsStyAbs => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
-                    memory.write_byte(self.y_register, absolute_address, &mut cycles);
+                    self.write_byte(self.y_register, absolute_address, &mut cycles, memory);
                 }
 
                 _ => {}
@@ -346,14 +389,49 @@ impl CPU {
     }
 
     pub fn read_word_absolute(&self, cycles: &mut i32, memory: &mut Memory, address: Word) -> Word {
-        let low_byte = memory[self.program_counter] as Word;
+        let low_byte = memory[address] as Word;
         *cycles -= 1;
 
-        let high_byte = (memory[self.program_counter] as Word) << 8;
+        let high_byte = (memory[address + 1] as Word) << 8;
         *cycles -= 1;
 
         let data: Word = low_byte | high_byte;
         data
+    }
+
+    pub fn write_word(&mut self, data: Word, address: Word, cycles: &mut i32, memory: &mut Memory) {
+        let data_bytes = data.to_le_bytes();
+        memory[address] = data_bytes[0];
+        *cycles -= 1;
+        memory[address + 1] = data_bytes[1];
+        *cycles -= 1;
+    }
+
+    pub fn write_byte(&mut self, data: Byte, address: Word, cycles: &mut i32, memory: &mut Memory) {
+        memory[address] = data;
+        *cycles -= 1;
+    }
+
+    pub fn stack_pointer_to_address(&self) -> Word {
+        0x100 | self.stack_pointer as Word
+    }
+
+    pub fn push_program_counter_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
+        self.write_word(
+            self.program_counter - 1,
+            self.stack_pointer_to_address() -1,
+            cycles,
+            memory,
+        );
+        self.stack_pointer -= 2;
+        *cycles -= 1;
+    }
+
+    pub fn pop_word_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Word {
+        let return_address = self.read_word_absolute(cycles, memory, self.stack_pointer_to_address() + 1);
+        self.stack_pointer += 2;
+        *cycles -= 1;
+        return_address
     }
 }
 
@@ -386,6 +464,9 @@ pub enum Instruction {
     InsLdyAbsX = 0xBC,
     // Jumps
     InsJsr = 0x20,
+    InsRts = 0x60,
+    InsJmpAbs = 0x4C,
+    InsJmpInd = 0x6C,
     // STA
     InsStaZp = 0x85,
     InsStaZpx = 0x95,
@@ -432,6 +513,9 @@ impl TryFrom<Byte> for Instruction {
             0xBC => Ok(Self::InsLdyAbsX),
             // Jumps
             0x20 => Ok(Self::InsJsr),
+            0x60 => Ok(Self::InsRts),
+            0x4C => Ok(Self::InsJmpAbs),
+            0x6C => Ok(Self::InsJmpInd),
             // STA
             0x85 => Ok(Self::InsStaZp),
             0x95 => Ok(Self::InsStaZpx),

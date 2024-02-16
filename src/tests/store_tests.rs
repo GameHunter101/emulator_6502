@@ -5,40 +5,36 @@ use crate::{
 
 use super::load_tests::RegisterToTest;
 
-static mut CPU: CPU = CPU::reset();
-static mut MEMORY: Memory = Memory::initialize();
-
-unsafe fn verify_unmodified_flags(cpu_copy: &CPU) {
-    assert_eq!(CPU.carry, cpu_copy.carry);
-    assert_eq!(CPU.interupt_disable, cpu_copy.interupt_disable);
-    assert_eq!(CPU.decimal_mode, cpu_copy.decimal_mode);
-    assert_eq!(CPU.break_command, cpu_copy.break_command);
-    assert_eq!(CPU.overflow, cpu_copy.overflow);
+fn verify_unmodified_flags(cpu: &CPU, cpu_copy: &CPU) {
+    assert_eq!(cpu.carry, cpu_copy.carry);
+    assert_eq!(cpu.interupt_disable, cpu_copy.interupt_disable);
+    assert_eq!(cpu.decimal_mode, cpu_copy.decimal_mode);
+    assert_eq!(cpu.break_command, cpu_copy.break_command);
+    assert_eq!(cpu.overflow, cpu_copy.overflow);
 }
 
 fn test_store_zero_page(opcode: Instruction, register_to_test: RegisterToTest) {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        match register_to_test {
-            RegisterToTest::A => CPU.a_register = 0x2F,
-            RegisterToTest::X => CPU.x_register = 0x2F,
-            RegisterToTest::Y => CPU.y_register = 0x2F,
-        }
-
-        MEMORY[0xFFFC] = opcode as Byte;
-        MEMORY[0xFFFD] = 0x80;
-
-        let cpu_copy = CPU.clone();
-
-        let cycles = CPU.execute(3, &mut MEMORY);
-
-        assert_eq!(cycles, Ok(3));
-
-        assert_eq!(MEMORY[0x0080_u16], 0x002F);
-
-        verify_unmodified_flags(&cpu_copy);
+    match register_to_test {
+        RegisterToTest::A => cpu.a_register = 0x2F,
+        RegisterToTest::X => cpu.x_register = 0x2F,
+        RegisterToTest::Y => cpu.y_register = 0x2F,
     }
+
+    memory[0xFFFC] = opcode as Byte;
+    memory[0xFFFD] = 0x80;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(3, &mut memory);
+
+    assert_eq!(cycles, Ok(3));
+
+    assert_eq!(memory[0x0080_u16], 0x002F);
+
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 fn test_store_zero_page_plus_register(
@@ -46,58 +42,56 @@ fn test_store_zero_page_plus_register(
     register_to_test: RegisterToTest,
     register_to_add: RegisterToTest,
 ) {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        match register_to_test {
-            RegisterToTest::A => CPU.a_register = 0x2F,
-            RegisterToTest::X => CPU.x_register = 0x2F,
-            RegisterToTest::Y => CPU.y_register = 0x2F,
-        }
-
-        MEMORY[0xFFFC] = opcode as Byte;
-        MEMORY[0xFFFD] = 0x80;
-
-        let cpu_copy = CPU.clone();
-
-        let cycles = CPU.execute(4, &mut MEMORY);
-
-        assert_eq!(cycles, Ok(4));
-
-        match register_to_add {
-            RegisterToTest::A => assert_eq!(MEMORY[0x80_u8 + CPU.a_register], 0x002F),
-            RegisterToTest::X => assert_eq!(MEMORY[0x80_u8 + CPU.x_register], 0x002F),
-            RegisterToTest::Y => assert_eq!(MEMORY[0x80_u8 + CPU.y_register], 0x002F),
-        }
-
-        verify_unmodified_flags(&cpu_copy);
+    match register_to_test {
+        RegisterToTest::A => cpu.a_register = 0x2F,
+        RegisterToTest::X => cpu.x_register = 0x2F,
+        RegisterToTest::Y => cpu.y_register = 0x2F,
     }
+
+    memory[0xFFFC] = opcode as Byte;
+    memory[0xFFFD] = 0x80;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(4, &mut memory);
+
+    assert_eq!(cycles, Ok(4));
+
+    match register_to_add {
+        RegisterToTest::A => assert_eq!(memory[0x80_u8 + cpu.a_register], 0x002F),
+        RegisterToTest::X => assert_eq!(memory[0x80_u8 + cpu.x_register], 0x002F),
+        RegisterToTest::Y => assert_eq!(memory[0x80_u8 + cpu.y_register], 0x002F),
+    }
+
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 fn test_store_absolute(opcode: Instruction, register_to_test: RegisterToTest) {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        match register_to_test {
-            RegisterToTest::A => CPU.a_register = 0x2F,
-            RegisterToTest::X => CPU.x_register = 0x2F,
-            RegisterToTest::Y => CPU.y_register = 0x2F,
-        }
-
-        MEMORY[0xFFFC] = opcode as Byte;
-        MEMORY[0xFFFD] = 0x80;
-        MEMORY[0xFFFE] = 0x44;
-
-        let cpu_copy = CPU.clone();
-
-        let cycles = CPU.execute(4, &mut MEMORY);
-
-        assert_eq!(cycles, Ok(4));
-
-        assert_eq!(MEMORY[0x4480_u16], 0x002F);
-
-        verify_unmodified_flags(&cpu_copy);
+    match register_to_test {
+        RegisterToTest::A => cpu.a_register = 0x2F,
+        RegisterToTest::X => cpu.x_register = 0x2F,
+        RegisterToTest::Y => cpu.y_register = 0x2F,
     }
+
+    memory[0xFFFC] = opcode as Byte;
+    memory[0xFFFD] = 0x80;
+    memory[0xFFFE] = 0x44;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(4, &mut memory);
+
+    assert_eq!(cycles, Ok(4));
+
+    assert_eq!(memory[0x4480_u16], 0x002F);
+
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 // STA
@@ -122,100 +116,96 @@ fn sta_absolute_can_store_value() {
 
 #[test]
 fn sta_absolute_x_can_store_value() {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        CPU.a_register = 0x2F;
-        CPU.x_register = 0x04;
+    cpu.a_register = 0x2F;
+    cpu.x_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaAbsX as Byte;
-        MEMORY[0xFFFD] = 0x80;
-        MEMORY[0xFFFE] = 0x44;
+    memory[0xFFFC] = Instruction::InsStaAbsX as Byte;
+    memory[0xFFFD] = 0x80;
+    memory[0xFFFE] = 0x44;
 
-        let cpu_copy = CPU.clone();
+    let cpu_copy = cpu.clone();
 
-        let cycles = CPU.execute(5, &mut MEMORY);
+    let cycles = cpu.execute(5, &mut memory);
 
-        assert_eq!(cycles, Ok(5));
+    assert_eq!(cycles, Ok(5));
 
-        assert_eq!(MEMORY[0x4484_u16], 0x002F);
+    assert_eq!(memory[0x4484_u16], 0x002F);
 
-        verify_unmodified_flags(&cpu_copy);
-    }
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 #[test]
 fn sta_absolute_y_can_store_value() {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        CPU.a_register = 0x2F;
-        CPU.y_register = 0x04;
+    cpu.a_register = 0x2F;
+    cpu.y_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaAbsY as Byte;
-        MEMORY[0xFFFD] = 0x80;
-        MEMORY[0xFFFE] = 0x44;
+    memory[0xFFFC] = Instruction::InsStaAbsY as Byte;
+    memory[0xFFFD] = 0x80;
+    memory[0xFFFE] = 0x44;
 
-        let cpu_copy = CPU.clone();
+    let cpu_copy = cpu.clone();
 
-        let cycles = CPU.execute(5, &mut MEMORY);
+    let cycles = cpu.execute(5, &mut memory);
 
-        assert_eq!(cycles, Ok(5));
+    assert_eq!(cycles, Ok(5));
 
-        assert_eq!(MEMORY[0x4484_u16], 0x002F);
+    assert_eq!(memory[0x4484_u16], 0x002F);
 
-        verify_unmodified_flags(&cpu_copy);
-    }
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 #[test]
 fn sta_indirect_x_can_store_value() {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        CPU.a_register = 0x2F;
-        CPU.x_register = 0x04;
+    cpu.a_register = 0x2F;
+    cpu.x_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaIndX as Byte;
-        MEMORY[0xFFFD] = 0x80;
-        MEMORY[0x84] = 0x80;
-        MEMORY[0x85] = 0x44;
+    memory[0xFFFC] = Instruction::InsStaIndX as Byte;
+    memory[0xFFFD] = 0x80;
+    memory[0x84] = 0x80;
+    memory[0x85] = 0x44;
 
-        let cpu_copy = CPU.clone();
+    let cpu_copy = cpu.clone();
 
-        let cycles = CPU.execute(6, &mut MEMORY);
+    let cycles = cpu.execute(6, &mut memory);
 
-        assert_eq!(cycles, Ok(6));
+    assert_eq!(cycles, Ok(6));
 
-        assert_eq!(MEMORY[0x4480_u16], 0x002F);
+    assert_eq!(memory[0x4480_u16], 0x002F);
 
-        verify_unmodified_flags(&cpu_copy);
-    }
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 #[test]
 fn sta_indirect_y_can_store_value() {
-    unsafe {
-        CPU = CPU::reset();
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
 
-        CPU.a_register = 0x2F;
-        CPU.y_register = 0x04;
+    cpu.a_register = 0x2F;
+    cpu.y_register = 0x04;
 
-        MEMORY[0xFFFC] = Instruction::InsStaIndY as Byte;
-        MEMORY[0xFFFD] = 0x80;
-        MEMORY[0x80] = 0x80;
-        MEMORY[0x81] = 0x44;
+    memory[0xFFFC] = Instruction::InsStaIndY as Byte;
+    memory[0xFFFD] = 0x80;
+    memory[0x80] = 0x80;
+    memory[0x81] = 0x44;
 
-        let cpu_copy = CPU.clone();
+    let cpu_copy = cpu.clone();
 
-        let cycles = CPU.execute(6, &mut MEMORY);
+    let cycles = cpu.execute(6, &mut memory);
 
-        assert_eq!(cycles, Ok(6));
+    assert_eq!(cycles, Ok(6));
 
-        assert_eq!(MEMORY[0x4484_u16], 0x002F);
+    assert_eq!(memory[0x4484_u16], 0x002F);
 
-        verify_unmodified_flags(&cpu_copy);
-    }
+    verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
 // STX
