@@ -10,11 +10,11 @@ pub enum RegisterToTest {
 }
 
 fn verify_unmodified_flags(cpu: &CPU, cpu_copy: &CPU) {
-    assert_eq!(cpu.carry, cpu_copy.carry);
-    assert_eq!(cpu.interupt_disable, cpu_copy.interupt_disable);
-    assert_eq!(cpu.decimal_mode, cpu_copy.decimal_mode);
-    assert_eq!(cpu.break_command, cpu_copy.break_command);
-    assert_eq!(cpu.overflow, cpu_copy.overflow);
+    assert_eq!(cpu.status.carry, cpu_copy.status.carry);
+    assert_eq!(cpu.status.interupt_disable, cpu_copy.status.interupt_disable);
+    assert_eq!(cpu.status.decimal_mode, cpu_copy.status.decimal_mode);
+    assert_eq!(cpu.status.break_command, cpu_copy.status.break_command);
+    assert_eq!(cpu.status.overflow, cpu_copy.status.overflow);
 }
 
 #[test]
@@ -60,8 +60,8 @@ fn test_loading_register_immediate(opcode: Instruction, register_to_test: Regist
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x84),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x84),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, true);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, true);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -85,8 +85,8 @@ fn test_loading_register_zero_page(opcode: Instruction, register_to_test: Regist
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -120,8 +120,8 @@ fn test_loading_register_zero_page_plus_register(
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -155,8 +155,8 @@ fn test_loading_register_zero_page_plus_register_when_wrap(
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -181,8 +181,8 @@ fn test_loading_register_absolute(opcode: Instruction, register_to_test: Registe
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -217,8 +217,8 @@ fn test_loading_register_absolute_plus_register(
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -253,8 +253,8 @@ fn test_loading_register_absolute_plus_register_when_crossing_page_boundary(
         RegisterToTest::X => assert_eq!(cpu.x_register, 0x37),
         RegisterToTest::Y => assert_eq!(cpu.y_register, 0x37),
     }
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -280,8 +280,8 @@ fn lda_immediate_can_affect_zero_flag() {
     assert_eq!(cycles, Ok(2));
 
     assert_eq!(cpu.a_register, 0x0);
-    assert_eq!(cpu.zero, true);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -370,8 +370,8 @@ fn lda_indirect_x_can_load_value() {
     assert_eq!(cycles, Ok(6));
 
     assert_eq!(cpu.a_register, 0x37);
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -396,8 +396,8 @@ fn lda_indirect_y_can_load_value() {
     assert_eq!(cycles, Ok(5));
 
     assert_eq!(cpu.a_register, 0x37);
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -422,8 +422,8 @@ fn lda_indirect_y_can_load_value_when_crossing_page_boundary() {
     assert_eq!(cycles, Ok(6));
 
     assert_eq!(cpu.a_register, 0x37);
-    assert_eq!(cpu.zero, false);
-    assert_eq!(cpu.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.negative, false);
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }

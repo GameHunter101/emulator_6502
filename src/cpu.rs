@@ -4,6 +4,31 @@ use crate::memory::Memory;
 pub type Byte = u8;
 pub type Word = u16;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ProcessorFlags {
+    pub carry: bool,
+    pub zero: bool,
+    pub interupt_disable: bool,
+    pub decimal_mode: bool,
+    pub break_command: bool,
+    pub overflow: bool,
+    pub negative: bool,
+}
+
+impl Default for ProcessorFlags {
+    fn default() -> Self {
+        ProcessorFlags {
+            carry: false,
+            zero: false,
+            interupt_disable: false,
+            decimal_mode: false,
+            break_command: false,
+            overflow: false,
+            negative: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct CPU {
     // Addresses
@@ -16,17 +41,11 @@ pub struct CPU {
     pub y_register: Byte,
 
     // Status flags
-    pub carry: bool,
-    pub zero: bool,
-    pub interupt_disable: bool,
-    pub decimal_mode: bool,
-    pub break_command: bool,
-    pub overflow: bool,
-    pub negative: bool,
+    pub status: ProcessorFlags,
 }
 
 impl CPU {
-    pub const fn reset(reset_vector: Option<Word>) -> CPU {
+    pub fn reset(reset_vector: Option<Word>) -> CPU {
         let program_counter = match reset_vector {
             Some(address) => address,
             None => 0xFFFC,
@@ -37,29 +56,23 @@ impl CPU {
             a_register: 0,
             x_register: 0,
             y_register: 0,
-            carry: false,
-            zero: false,
-            interupt_disable: false,
-            decimal_mode: false,
-            break_command: false,
-            overflow: false,
-            negative: false,
+            status: ProcessorFlags::default(),
         }
     }
 
     pub fn lda_set_status(&mut self) {
-        self.zero = self.a_register == 0;
-        self.negative = (self.a_register & 0b10000000) > 0;
+        self.status.zero = self.a_register == 0;
+        self.status.negative = (self.a_register & 0b10000000) > 0;
     }
 
     pub fn ldx_set_status(&mut self) {
-        self.zero = self.x_register == 0;
-        self.negative = (self.x_register & 0b10000000) > 0;
+        self.status.zero = self.x_register == 0;
+        self.status.negative = (self.x_register & 0b10000000) > 0;
     }
 
     pub fn ldy_set_status(&mut self) {
-        self.zero = self.y_register == 0;
-        self.negative = (self.y_register & 0b10000000) > 0;
+        self.status.zero = self.y_register == 0;
+        self.status.negative = (self.y_register & 0b10000000) > 0;
     }
 
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
@@ -220,12 +233,20 @@ impl CPU {
                     let subroutine_address = self.fetch_word(&mut cycles, memory);
                     self.push_program_counter_to_stack(&mut cycles, memory);
                     self.program_counter = subroutine_address;
-                    self.lda_set_status();
                 }
                 Instruction::InsRts => {
                     let return_address = self.pop_word_from_stack(&mut cycles, memory);
                     self.program_counter = return_address + 1;
                     cycles -= 2;
+                }
+                Instruction::InsJmpAbs => {
+                    let address = self.fetch_word(&mut cycles, memory);
+                    self.program_counter = address;
+                }
+                Instruction::InsJmpInd => {
+                    let indirect_address = self.fetch_word(&mut cycles, memory);
+                    let address = self.read_word_absolute(&mut cycles, memory, indirect_address);
+                    self.program_counter = address;
                 }
                 // STA
                 Instruction::InsStaZp => {
@@ -419,7 +440,7 @@ impl CPU {
     pub fn push_program_counter_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
         self.write_word(
             self.program_counter - 1,
-            self.stack_pointer_to_address() -1,
+            self.stack_pointer_to_address() - 1,
             cycles,
             memory,
         );
@@ -428,7 +449,8 @@ impl CPU {
     }
 
     pub fn pop_word_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Word {
-        let return_address = self.read_word_absolute(cycles, memory, self.stack_pointer_to_address() + 1);
+        let return_address =
+            self.read_word_absolute(cycles, memory, self.stack_pointer_to_address() + 1);
         self.stack_pointer += 2;
         *cycles -= 1;
         return_address

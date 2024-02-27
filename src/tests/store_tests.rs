@@ -6,11 +6,11 @@ use crate::{
 use super::load_tests::RegisterToTest;
 
 fn verify_unmodified_flags(cpu: &CPU, cpu_copy: &CPU) {
-    assert_eq!(cpu.carry, cpu_copy.carry);
-    assert_eq!(cpu.interupt_disable, cpu_copy.interupt_disable);
-    assert_eq!(cpu.decimal_mode, cpu_copy.decimal_mode);
-    assert_eq!(cpu.break_command, cpu_copy.break_command);
-    assert_eq!(cpu.overflow, cpu_copy.overflow);
+    assert_eq!(cpu.status.carry, cpu_copy.status.carry);
+    assert_eq!(cpu.status.interupt_disable, cpu_copy.status.interupt_disable);
+    assert_eq!(cpu.status.decimal_mode, cpu_copy.status.decimal_mode);
+    assert_eq!(cpu.status.break_command, cpu_copy.status.break_command);
+    assert_eq!(cpu.status.overflow, cpu_copy.status.overflow);
 }
 
 fn test_store_zero_page(opcode: Instruction, register_to_test: RegisterToTest) {
