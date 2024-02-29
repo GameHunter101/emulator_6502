@@ -15,6 +15,48 @@ pub struct ProcessorFlags {
     pub negative: bool,
 }
 
+impl From<u8> for ProcessorFlags {
+    fn from(value: u8) -> Self {
+        ProcessorFlags {
+            carry: value & 0b00000001 != 0,
+            zero: value & 0b00000010 != 0,
+            interupt_disable: value & 0b00000100 != 0,
+            decimal_mode: value & 0b00001000 != 0,
+            break_command: value & 0b00010000 != 0,
+            overflow: value & 0b01000000 != 0,
+            negative: value & 0b10000000 != 0,
+        }
+    }
+}
+
+impl From<ProcessorFlags> for u8 {
+    fn from(val: ProcessorFlags) -> Self {
+        let mut result = 0;
+        if val.carry {
+            result ^= 0b00000001;
+        }
+        if val.zero {
+            result ^= 0b00000010;
+        }
+        if val.interupt_disable {
+            result ^= 0b00000100;
+        }
+        if val.decimal_mode {
+            result ^= 0b00001000;
+        }
+        if val.break_command {
+            result ^= 0b00010000;
+        }
+        if val.overflow {
+            result ^= 0b01000000;
+        }
+        if val.negative {
+            result ^= 0b10000000;
+        }
+        result
+    }
+}
+
 impl Default for ProcessorFlags {
     fn default() -> Self {
         ProcessorFlags {
@@ -359,7 +401,28 @@ impl CPU {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
                     self.write_byte(self.y_register, absolute_address, &mut cycles, memory);
                 }
-
+                Instruction::InsTsx => {
+                    self.x_register = self.stack_pointer;
+                    cycles -= 1;
+                    self.ldx_set_status();
+                }
+                Instruction::InsTxs => {
+                    self.stack_pointer = self.x_register;
+                    cycles -= 1;
+                }
+                Instruction::InsPha => {
+                    self.push_byte_to_stack(self.a_register, &mut cycles, memory);
+                }
+                Instruction::InsPla => {
+                    self.a_register = self.pop_byte_from_stack(&mut cycles, memory);
+                    self.lda_set_status();
+                }
+                Instruction::InsPhp => {
+                    self.push_byte_to_stack(self.status.into(), &mut cycles, memory);
+                }
+                Instruction::InsPlp => {
+                    self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
+                }
                 _ => {}
             }
         }
@@ -455,6 +518,20 @@ impl CPU {
         *cycles -= 1;
         return_address
     }
+
+    pub fn push_byte_to_stack(&mut self, data: Byte, cycles: &mut i32, memory: &mut Memory) {
+        memory[self.stack_pointer_to_address()] = data;
+        *cycles -= 1;
+        self.stack_pointer -= 1;
+        *cycles -= 1;
+    }
+
+    pub fn pop_byte_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Byte {
+        self.stack_pointer += 1;
+        let data = memory[self.stack_pointer_to_address()];
+        *cycles -= 3;
+        data
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -505,6 +582,13 @@ pub enum Instruction {
     InsStyZp = 0x84,
     InsStyZpx = 0x94,
     InsStyAbs = 0x8C,
+    // Transfer stack pointer
+    InsTsx = 0xBA,
+    InsTxs = 0x9A,
+    InsPha = 0x48,
+    InsPhp = 0x08,
+    InsPla = 0x68,
+    InsPlp = 0x28,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -554,6 +638,13 @@ impl TryFrom<Byte> for Instruction {
             0x84 => Ok(Self::InsStyZp),
             0x94 => Ok(Self::InsStyZpx),
             0x8C => Ok(Self::InsStyAbs),
+            // Transfer stack stack pointer
+            0xBA => Ok(Self::InsTsx),
+            0x9A => Ok(Self::InsTxs),
+            0x48 => Ok(Self::InsPha),
+            0x08 => Ok(Self::InsPhp),
+            0x68 => Ok(Self::InsPla),
+            0x28 => Ok(Self::InsPlp),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }
