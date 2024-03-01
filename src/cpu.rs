@@ -589,6 +589,33 @@ pub enum Instruction {
     InsPhp = 0x08,
     InsPla = 0x68,
     InsPlp = 0x28,
+    // AND
+    InsAndIm = 0x69,
+    InsAndZp = 0x65,
+    InsAndZpx = 0x75,
+    InsAndAbs = 0x6D,
+    InsAndAbsX = 0x7D,
+    InsAndAbsY = 0x79,
+    InsAndIndX = 0x61,
+    InsAndIndY = 0x71,
+    // EOR
+    InsEorIm = 0x49,
+    InsEorZp = 0x45,
+    InsEorZpx = 0x55,
+    InsEorAbs = 0x4D,
+    InsEorAbsX = 0x5D,
+    InsEorAbsY = 0x59,
+    InsEorIndX = 0x41,
+    InsEorIndY = 0x51,
+    // ORA
+    InsOraIm = 0x09,
+    InsOraZp = 0x05,
+    InsOraZpx = 0x15,
+    InsOraAbs = 0x0D,
+    InsOraAbsX = 0x1D,
+    InsOraAbsY = 0x19,
+    InsOraIndX = 0x01,
+    InsOraIndY = 0x11,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -645,6 +672,33 @@ impl TryFrom<Byte> for Instruction {
             0x08 => Ok(Self::InsPhp),
             0x68 => Ok(Self::InsPla),
             0x28 => Ok(Self::InsPlp),
+            // AND
+            0x69 => Ok(Self::InsAndIm),
+            0x65 => Ok(Self::InsAndZp),
+            0x75 => Ok(Self::InsAndZpx),
+            0x6D => Ok(Self::InsAndAbs),
+            0x7D => Ok(Self::InsAndAbsX),
+            0x79 => Ok(Self::InsAndAbsY),
+            0x61 => Ok(Self::InsAndIndX),
+            0x71 => Ok(Self::InsAndIndY),
+            // EOR
+            0x49 => Ok(Self::InsEorIm),
+            0x45 => Ok(Self::InsEorZp),
+            0x55 => Ok(Self::InsEorZpx),
+            0x4D => Ok(Self::InsEorAbs),
+            0x5D => Ok(Self::InsEorAbsX),
+            0x59 => Ok(Self::InsEorAbsY),
+            0x41 => Ok(Self::InsEorIndX),
+            0x51 => Ok(Self::InsEorIndY),
+            // ORA
+            0x09 => Ok(Self::InsOraIm),
+            0x05 => Ok(Self::InsOraZp),
+            0x15 => Ok(Self::InsOraZpx),
+            0x0D => Ok(Self::InsOraAbs),
+            0x1D => Ok(Self::InsOraAbsX),
+            0x19 => Ok(Self::InsOraAbsY),
+            0x01 => Ok(Self::InsOraIndX),
+            0x11 => Ok(Self::InsOraIndY),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

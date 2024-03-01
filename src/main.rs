@@ -11,6 +11,7 @@ mod tests {
     pub mod store_tests;
     pub mod jumps_and_calls_tests;
     pub mod stack_operations_tests;
+    pub mod logical_ops_tests;
 }
 
 fn main() {
