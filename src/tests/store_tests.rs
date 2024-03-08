@@ -103,7 +103,7 @@ fn sta_zero_page_can_store_value() {
 #[test]
 fn sta_zero_page_x_can_store_value() {
     test_store_zero_page_plus_register(
-        Instruction::InsStaZpx,
+        Instruction::InsStaZpX,
         RegisterToTest::A,
         RegisterToTest::X,
     );
@@ -217,7 +217,7 @@ fn stx_zero_page_can_store_value() {
 #[test]
 fn stx_zero_page_y_can_store_value() {
     test_store_zero_page_plus_register(
-        Instruction::InsStxZpy,
+        Instruction::InsStxZpY,
         RegisterToTest::X,
         RegisterToTest::Y,
     );
@@ -237,7 +237,7 @@ fn sty_zero_page_can_store_value() {
 #[test]
 fn sty_zero_page_x_can_store_value() {
     test_store_zero_page_plus_register(
-        Instruction::InsStyZpx,
+        Instruction::InsStyZpX,
         RegisterToTest::Y,
         RegisterToTest::X,
     );

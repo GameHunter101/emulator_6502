@@ -294,7 +294,7 @@ fn lda_zero_page_can_load_value() {
 #[test]
 fn lda_zero_page_x_can_load_value() {
     test_loading_register_zero_page_plus_register(
-        Instruction::InsLdaZpx,
+        Instruction::InsLdaZpX,
         RegisterToTest::A,
         RegisterToTest::X,
     );
@@ -303,7 +303,7 @@ fn lda_zero_page_x_can_load_value() {
 #[test]
 fn lda_zero_page_x_can_load_value_when_wrap() {
     test_loading_register_zero_page_plus_register_when_wrap(
-        Instruction::InsLdaZpx,
+        Instruction::InsLdaZpX,
         RegisterToTest::A,
         RegisterToTest::X,
     );
@@ -496,7 +496,7 @@ fn ldy_zero_page_can_load_value() {
 #[test]
 fn ldy_zero_page_x_can_load_value() {
     test_loading_register_zero_page_plus_register(
-        Instruction::InsLdyZpx,
+        Instruction::InsLdyZpX,
         RegisterToTest::Y,
         RegisterToTest::X,
     );
@@ -505,7 +505,7 @@ fn ldy_zero_page_x_can_load_value() {
 #[test]
 fn ldy_zero_page_x_can_load_value_when_wrap() {
     test_loading_register_zero_page_plus_register_when_wrap(
-        Instruction::InsLdyZpx,
+        Instruction::InsLdyZpX,
         RegisterToTest::Y,
         RegisterToTest::X,
     );

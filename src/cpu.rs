@@ -135,7 +135,7 @@ impl CPU {
                     self.a_register = value;
                     self.lda_set_status();
                 }
-                Instruction::InsLdaZpx => {
+                Instruction::InsLdaZpX => {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
@@ -155,7 +155,7 @@ impl CPU {
 
                     let value = self.read_byte(&mut cycles, memory, absolute_address_x);
                     self.a_register = value;
-                    if absolute_address_x / 255 != absolute_address / 255 {
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
                         cycles -= 1;
                     }
                     self.lda_set_status();
@@ -166,7 +166,7 @@ impl CPU {
 
                     let value = self.read_byte(&mut cycles, memory, absolute_address_y);
                     self.a_register = value;
-                    if absolute_address_y / 255 != absolute_address / 255 {
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
                         cycles -= 1;
                     }
                     self.lda_set_status();
@@ -191,7 +191,7 @@ impl CPU {
 
                     let value = self.read_byte(&mut cycles, memory, absolute_address_y);
                     self.a_register = value;
-                    if absolute_address_y / 255 != absolute_address / 255 {
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
                         cycles -= 1;
                     }
                     self.lda_set_status();
@@ -228,7 +228,7 @@ impl CPU {
 
                     let value = self.read_byte(&mut cycles, memory, absolute_address_y);
                     self.x_register = value;
-                    if absolute_address_y / 255 != absolute_address / 255 {
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
                         cycles -= 1;
                     }
                     self.ldx_set_status();
@@ -245,7 +245,7 @@ impl CPU {
                     self.y_register = value;
                     self.ldy_set_status();
                 }
-                Instruction::InsLdyZpx => {
+                Instruction::InsLdyZpX => {
                     let mut zero_page_address = self.fetch_byte(&mut cycles, memory);
                     zero_page_address = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
@@ -265,7 +265,7 @@ impl CPU {
 
                     let value = self.read_byte(&mut cycles, memory, absolute_address_x);
                     self.y_register = value;
-                    if absolute_address_x / 255 != absolute_address / 255 {
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
                         cycles -= 1;
                     }
                     self.ldy_set_status();
@@ -300,7 +300,7 @@ impl CPU {
                         memory,
                     );
                 }
-                Instruction::InsStaZpx => {
+                Instruction::InsStaZpX => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
                     cycles -= 1;
                     self.write_byte(
@@ -363,7 +363,7 @@ impl CPU {
                         memory,
                     );
                 }
-                Instruction::InsStxZpy => {
+                Instruction::InsStxZpY => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.y_register;
                     cycles -= 1;
                     self.write_byte(
@@ -387,7 +387,7 @@ impl CPU {
                         memory,
                     );
                 }
-                Instruction::InsStyZpx => {
+                Instruction::InsStyZpX => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
                     cycles -= 1;
                     self.write_byte(
@@ -423,10 +423,149 @@ impl CPU {
                 Instruction::InsPlp => {
                     self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
                 }
+                // AND
+                Instruction::InsAndIm => {
+                    let value = self.fetch_byte(&mut cycles, memory);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
+                    cycles -= 1;
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndAbs => {
+                    let address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, address);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
+                        cycles -= 1;
+                    }
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndAbsY => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_y = absolute_address + self.y_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_y);
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
+                        cycles -= 1;
+                    }
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                // EOR
+                Instruction::InsEorIm => {
+                    let value = self.fetch_byte(&mut cycles, memory);
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
+                    cycles -= 1;
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorAbs => {
+                    let address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, address);
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
+                        cycles -= 1;
+                    }
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorAbsY => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_y = absolute_address + self.y_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_y);
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
+                        cycles -= 1;
+                    }
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                // ORA
+                Instruction::InsOraIm => {
+                    let value = self.fetch_byte(&mut cycles, memory);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) + self.x_register;
+                    cycles -= 1;
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraAbs => {
+                    let address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, address);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
+                        cycles -= 1;
+                    }
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraAbsY => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_y = absolute_address + self.y_register as Word;
+                    let value = self.read_byte(&mut cycles, memory, absolute_address_y);
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
+                        cycles -= 1;
+                    }
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
                 _ => {}
             }
         }
         Ok(cycles_requested - cycles)
+    }
+
+    pub fn check_same_page(address_a: Word, address_b: Word) -> bool {
+        address_a / 256 == address_b / 256
     }
 
     pub fn fetch_byte(&mut self, cycles: &mut i32, memory: &mut Memory) -> Byte {
@@ -543,7 +682,7 @@ pub enum Instruction {
     // LDA
     InsLdaIm = 0xA9,
     InsLdaZp = 0xA5,
-    InsLdaZpx = 0xB5,
+    InsLdaZpX = 0xB5,
     InsLdaAbs = 0xAD,
     InsLdaAbsX = 0xBD,
     InsLdaAbsY = 0xB9,
@@ -558,7 +697,7 @@ pub enum Instruction {
     // LDY
     InsLdyIm = 0xA0,
     InsLdyZp = 0xA4,
-    InsLdyZpx = 0xB4,
+    InsLdyZpX = 0xB4,
     InsLdyAbs = 0xAC,
     InsLdyAbsX = 0xBC,
     // Jumps
@@ -568,7 +707,7 @@ pub enum Instruction {
     InsJmpInd = 0x6C,
     // STA
     InsStaZp = 0x85,
-    InsStaZpx = 0x95,
+    InsStaZpX = 0x95,
     InsStaAbs = 0x8D,
     InsStaAbsX = 0x9D,
     InsStaAbsY = 0x99,
@@ -576,11 +715,11 @@ pub enum Instruction {
     InsStaIndY = 0x91,
     // STX
     InsStxZp = 0x86,
-    InsStxZpy = 0x96,
+    InsStxZpY = 0x96,
     InsStxAbs = 0x8E,
     // STY
     InsStyZp = 0x84,
-    InsStyZpx = 0x94,
+    InsStyZpX = 0x94,
     InsStyAbs = 0x8C,
     // Transfer stack pointer
     InsTsx = 0xBA,
@@ -592,7 +731,7 @@ pub enum Instruction {
     // AND
     InsAndIm = 0x69,
     InsAndZp = 0x65,
-    InsAndZpx = 0x75,
+    InsAndZpX = 0x75,
     InsAndAbs = 0x6D,
     InsAndAbsX = 0x7D,
     InsAndAbsY = 0x79,
@@ -601,7 +740,7 @@ pub enum Instruction {
     // EOR
     InsEorIm = 0x49,
     InsEorZp = 0x45,
-    InsEorZpx = 0x55,
+    InsEorZpX = 0x55,
     InsEorAbs = 0x4D,
     InsEorAbsX = 0x5D,
     InsEorAbsY = 0x59,
@@ -610,7 +749,7 @@ pub enum Instruction {
     // ORA
     InsOraIm = 0x09,
     InsOraZp = 0x05,
-    InsOraZpx = 0x15,
+    InsOraZpX = 0x15,
     InsOraAbs = 0x0D,
     InsOraAbsX = 0x1D,
     InsOraAbsY = 0x19,
@@ -626,7 +765,7 @@ impl TryFrom<Byte> for Instruction {
             // LDA
             0xA9 => Ok(Self::InsLdaIm),
             0xA5 => Ok(Self::InsLdaZp),
-            0xB5 => Ok(Self::InsLdaZpx),
+            0xB5 => Ok(Self::InsLdaZpX),
             0xAD => Ok(Self::InsLdaAbs),
             0xBD => Ok(Self::InsLdaAbsX),
             0xB9 => Ok(Self::InsLdaAbsY),
@@ -641,7 +780,7 @@ impl TryFrom<Byte> for Instruction {
             // LDY
             0xA0 => Ok(Self::InsLdyIm),
             0xA4 => Ok(Self::InsLdyZp),
-            0xB4 => Ok(Self::InsLdyZpx),
+            0xB4 => Ok(Self::InsLdyZpX),
             0xAC => Ok(Self::InsLdyAbs),
             0xBC => Ok(Self::InsLdyAbsX),
             // Jumps
@@ -651,7 +790,7 @@ impl TryFrom<Byte> for Instruction {
             0x6C => Ok(Self::InsJmpInd),
             // STA
             0x85 => Ok(Self::InsStaZp),
-            0x95 => Ok(Self::InsStaZpx),
+            0x95 => Ok(Self::InsStaZpX),
             0x8D => Ok(Self::InsStaAbs),
             0x9D => Ok(Self::InsStaAbsX),
             0x99 => Ok(Self::InsStaAbsY),
@@ -659,11 +798,11 @@ impl TryFrom<Byte> for Instruction {
             0x91 => Ok(Self::InsStaIndY),
             //  STX
             0x86 => Ok(Self::InsStxZp),
-            0x96 => Ok(Self::InsStxZpy),
+            0x96 => Ok(Self::InsStxZpY),
             0x8E => Ok(Self::InsStxAbs),
             // STY
             0x84 => Ok(Self::InsStyZp),
-            0x94 => Ok(Self::InsStyZpx),
+            0x94 => Ok(Self::InsStyZpX),
             0x8C => Ok(Self::InsStyAbs),
             // Transfer stack stack pointer
             0xBA => Ok(Self::InsTsx),
@@ -675,7 +814,7 @@ impl TryFrom<Byte> for Instruction {
             // AND
             0x69 => Ok(Self::InsAndIm),
             0x65 => Ok(Self::InsAndZp),
-            0x75 => Ok(Self::InsAndZpx),
+            0x75 => Ok(Self::InsAndZpX),
             0x6D => Ok(Self::InsAndAbs),
             0x7D => Ok(Self::InsAndAbsX),
             0x79 => Ok(Self::InsAndAbsY),
@@ -684,7 +823,7 @@ impl TryFrom<Byte> for Instruction {
             // EOR
             0x49 => Ok(Self::InsEorIm),
             0x45 => Ok(Self::InsEorZp),
-            0x55 => Ok(Self::InsEorZpx),
+            0x55 => Ok(Self::InsEorZpX),
             0x4D => Ok(Self::InsEorAbs),
             0x5D => Ok(Self::InsEorAbsX),
             0x59 => Ok(Self::InsEorAbsY),
@@ -693,7 +832,7 @@ impl TryFrom<Byte> for Instruction {
             // ORA
             0x09 => Ok(Self::InsOraIm),
             0x05 => Ok(Self::InsOraZp),
-            0x15 => Ok(Self::InsOraZpx),
+            0x15 => Ok(Self::InsOraZpX),
             0x0D => Ok(Self::InsOraAbs),
             0x1D => Ok(Self::InsOraAbsX),
             0x19 => Ok(Self::InsOraAbsY),
