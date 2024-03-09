@@ -1,4 +1,6 @@
 #![allow(unused)]
+use std::ops::BitOrAssign;
+
 use crate::memory::Memory;
 
 pub type Byte = u8;
@@ -15,6 +17,21 @@ pub struct ProcessorFlags {
     pub negative: bool,
 }
 
+impl ProcessorFlags {
+    pub fn into_u8(&self) -> u8 {
+        let mut value = 0;
+        value |= self.carry as u8;
+        value |= (self.zero as u8) << 1;
+        value |= (self.interupt_disable as u8) << 2;
+        value |= (self.decimal_mode as u8) << 3;
+        value |= (self.break_command as u8) << 4;
+        value |= (self.overflow as u8) << 6;
+        value |= (self.negative as u8) << 7;
+
+        value
+    }
+}
+
 impl From<u8> for ProcessorFlags {
     fn from(value: u8) -> Self {
         ProcessorFlags {
@@ -26,6 +43,13 @@ impl From<u8> for ProcessorFlags {
             overflow: value & 0b01000000 != 0,
             negative: value & 0b10000000 != 0,
         }
+    }
+}
+
+impl BitOrAssign for ProcessorFlags {
+    fn bitor_assign(&mut self, rhs: Self) {
+        let as_u8 = self.into_u8();
+        *self = Self::from(as_u8 | rhs.into_u8());
     }
 }
 
@@ -468,6 +492,28 @@ impl CPU {
                     self.a_register &= value;
                     self.lda_set_status();
                 }
+                Instruction::InsAndIndX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
+                    let value = self.read_byte(&mut cycles, memory, indirect_address);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsAndIndY => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let indirect_address_y = indirect_address + self.y_register as Word;
+                    if !CPU::check_same_page(indirect_address, indirect_address_y) {
+                        cycles -= 1;
+                    }
+                    let value = self.read_byte(&mut cycles, memory, indirect_address_y);
+                    self.a_register &= value;
+                    self.lda_set_status();
+                }
                 // EOR
                 Instruction::InsEorIm => {
                     let value = self.fetch_byte(&mut cycles, memory);
@@ -510,6 +556,28 @@ impl CPU {
                     if !CPU::check_same_page(absolute_address, absolute_address_y) {
                         cycles -= 1;
                     }
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorIndX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
+                    let value = self.read_byte(&mut cycles, memory, indirect_address);
+                    self.a_register ^= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsEorIndY => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let indirect_address_y = indirect_address + self.y_register as Word;
+                    if !CPU::check_same_page(indirect_address, indirect_address_y) {
+                        cycles -= 1;
+                    }
+                    let value = self.read_byte(&mut cycles, memory, indirect_address_y);
                     self.a_register ^= value;
                     self.lda_set_status();
                 }
@@ -558,7 +626,44 @@ impl CPU {
                     self.a_register |= value;
                     self.lda_set_status();
                 }
-                _ => {}
+                Instruction::InsOraIndX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
+                    let value = self.read_byte(&mut cycles, memory, indirect_address);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                Instruction::InsOraIndY => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let indirect_address_y = indirect_address + self.y_register as Word;
+                    if !CPU::check_same_page(indirect_address, indirect_address_y) {
+                        cycles -= 1;
+                    }
+                    let value = self.read_byte(&mut cycles, memory, indirect_address_y);
+                    self.a_register |= value;
+                    self.lda_set_status();
+                }
+                // BIT
+                Instruction::InsBitZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.status.zero = (self.a_register & value) == 0;
+                    self.status |= ProcessorFlags::from(value & 0b11000000);
+                }
+                Instruction::InsBitAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let value = self.read_byte(&mut cycles, memory, absolute_address);
+                    self.status.zero = (self.a_register & value) == 0;
+                    self.status |= ProcessorFlags::from(value & 0b11000000);
+                }
+                _ => {
+                    break;
+                }
             }
         }
         Ok(cycles_requested - cycles)
@@ -604,7 +709,7 @@ impl CPU {
         let low_byte = memory[address] as Word;
         *cycles -= 1;
 
-        let high_byte = (memory[address + 1] as Word) << 8;
+        let high_byte = (memory[address.wrapping_add(1)] as Word) << 8;
         *cycles -= 1;
 
         let data: Word = low_byte | high_byte;
@@ -755,6 +860,9 @@ pub enum Instruction {
     InsOraAbsY = 0x19,
     InsOraIndX = 0x01,
     InsOraIndY = 0x11,
+    // BIT
+    InsBitZp = 0x24,
+    InsBitAbs = 0x2C,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -838,6 +946,9 @@ impl TryFrom<Byte> for Instruction {
             0x19 => Ok(Self::InsOraAbsY),
             0x01 => Ok(Self::InsOraIndX),
             0x11 => Ok(Self::InsOraIndY),
+            // BIT
+            0x24 => Ok(Self::InsBitZp),
+            0x2C => Ok(Self::InsBitAbs),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

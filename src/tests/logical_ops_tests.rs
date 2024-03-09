@@ -292,7 +292,7 @@ fn test_logical_op_on_a_register_indirect_x(logical_operator: LogicalOperator) {
 
     memory[0xFFFD] = 0x4C;
     memory[0x89] = 0x03;
-    memory[0x89] = 0xFC;
+    memory[0x8A] = 0xFC;
     memory[0xFC03] = 0x84;
 
     let cpu_copy = cpu.clone();
@@ -324,8 +324,8 @@ fn test_logical_op_on_a_register_indirect_x_wrapping_zero_page(logical_operator:
     }
 
     memory[0xFFFD] = 0x4C;
-    memory[0x30] = 0x03;
-    memory[0x31] = 0xFC;
+    memory[0x38] = 0x03;
+    memory[0x39] = 0xFC;
     memory[0xFC03] = 0x84;
 
     let cpu_copy = cpu.clone();
@@ -638,4 +638,152 @@ fn test_logical_op_ora_on_a_register_indirect_y() {
 #[test]
 fn test_logical_op_ora_on_a_register_indirect_y_when_wrapping_page_boundary() {
     test_logical_op_on_a_register_indirect_y_when_crossing_page_boundary(LogicalOperator::ORA);
+}
+
+// BIT
+#[test]
+fn test_bit_zero_page() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0xCC;
+
+    memory[0xFFFC] = Instruction::InsBitZp as Byte;
+
+    memory[0xFFFD] = 0x42;
+    memory[0x0042] = 0xCC;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(3, &mut memory);
+
+    assert_eq!(cycles, Ok(3));
+
+    assert_eq!(cpu.a_register, 0xCC);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.overflow, true);
+    assert_eq!(cpu.status.negative, true);
+}
+
+#[test]
+fn test_bit_zero_page_modifies_zero_flag() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0xCC;
+
+    memory[0xFFFC] = Instruction::InsBitZp as Byte;
+
+    memory[0xFFFD] = 0x42;
+    memory[0x0042] = 0x33;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(3, &mut memory);
+
+    assert_eq!(cycles, Ok(3));
+
+    assert_eq!(cpu.a_register, 0xCC);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.overflow, false);
+    assert_eq!(cpu.status.negative, false);
+}
+
+#[test]
+fn test_bit_zero_page_modifies_zero_negative_overflow_flag() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0x33;
+
+    memory[0xFFFC] = Instruction::InsBitZp as Byte;
+
+    memory[0xFFFD] = 0x42;
+    memory[0x0042] = 0xCC;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(3, &mut memory);
+
+    assert_eq!(cycles, Ok(3));
+
+    assert_eq!(cpu.a_register, 0x33);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.overflow, true);
+    assert_eq!(cpu.status.negative, true);
+}
+
+#[test]
+fn test_bit_absolute() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0xCC;
+
+    memory[0xFFFC] = Instruction::InsBitAbs as Byte;
+
+    memory[0xFFFD] = 0x00;
+    memory[0xFFFE] = 0x80;
+    memory[0x8000] = 0x33;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(4, &mut memory);
+
+    assert_eq!(cycles, Ok(4));
+
+    assert_eq!(cpu.a_register, 0xCC);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.overflow, false);
+    assert_eq!(cpu.status.negative, false);
+}
+
+#[test]
+fn test_bit_absolute_modifies_zero_flag() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0xCC;
+
+    memory[0xFFFC] = Instruction::InsBitAbs as Byte;
+
+    memory[0xFFFD] = 0x00;
+    memory[0xFFFE] = 0x80;
+    memory[0x8000] = 0x33;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(4, &mut memory);
+
+    assert_eq!(cycles, Ok(4));
+
+    assert_eq!(cpu.a_register, 0xCC);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.overflow, false);
+    assert_eq!(cpu.status.negative, false);
+}
+
+#[test]
+fn test_bit_absolute_modifies_zero_negative_overflow_flag() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.a_register = 0x33;
+
+    memory[0xFFFC] = Instruction::InsBitAbs as Byte;
+
+    memory[0xFFFD] = 0x00;
+    memory[0xFFFE] = 0x80;
+    memory[0x8000] = 0xCC;
+
+    let cpu_copy = cpu.clone();
+
+    let cycles = cpu.execute(4, &mut memory);
+
+    assert_eq!(cycles, Ok(4));
+
+    assert_eq!(cpu.a_register, 0x33);
+    assert_eq!(cpu.status.zero, true);
+    assert_eq!(cpu.status.overflow, true);
+    assert_eq!(cpu.status.negative, true);
 }
