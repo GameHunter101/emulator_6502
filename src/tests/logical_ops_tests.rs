@@ -1,5 +1,6 @@
 use crate::{
-    cpu::{Byte, Instruction, InstructionsError, CPU},
+    cpu::{Byte, CPU},
+    instructions::{Instruction, InstructionsError},
     memory::Memory,
 };
 
@@ -52,7 +53,10 @@ fn test_logical_op_on_a_register_immediate(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -82,7 +86,10 @@ fn test_logical_op_on_a_register_zero_page(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -113,7 +120,10 @@ fn test_logical_op_on_a_register_zero_page_x(logical_operator: LogicalOperator) 
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -144,7 +154,10 @@ fn test_logical_op_on_a_register_absolute(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -176,12 +189,17 @@ fn test_logical_op_on_a_register_absolute_x(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_logical_op_on_a_register_absolute_x_when_crossing_page_boundary(logical_operator: LogicalOperator) {
+fn test_logical_op_on_a_register_absolute_x_when_crossing_page_boundary(
+    logical_operator: LogicalOperator,
+) {
     let mut cpu = CPU::reset(Some(0xFFF0));
     let mut memory = Memory::initialize();
 
@@ -208,7 +226,10 @@ fn test_logical_op_on_a_register_absolute_x_when_crossing_page_boundary(logical_
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -240,12 +261,17 @@ fn test_logical_op_on_a_register_absolute_y(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_logical_op_on_a_register_absolute_y_when_crossing_page_boundary(logical_operator: LogicalOperator) {
+fn test_logical_op_on_a_register_absolute_y_when_crossing_page_boundary(
+    logical_operator: LogicalOperator,
+) {
     let mut cpu = CPU::reset(Some(0xFFF0));
     let mut memory = Memory::initialize();
 
@@ -272,7 +298,10 @@ fn test_logical_op_on_a_register_absolute_y_when_crossing_page_boundary(logical_
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -305,7 +334,10 @@ fn test_logical_op_on_a_register_indirect_x(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -338,7 +370,10 @@ fn test_logical_op_on_a_register_indirect_x_wrapping_zero_page(logical_operator:
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -371,7 +406,10 @@ fn test_logical_op_on_a_register_indirect_x_split_by_zero_page(logical_operator:
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -404,12 +442,17 @@ fn test_logical_op_on_a_register_indirect_y(logical_operator: LogicalOperator) {
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_logical_op_on_a_register_indirect_y_when_crossing_page_boundary(logical_operator: LogicalOperator) {
+fn test_logical_op_on_a_register_indirect_y_when_crossing_page_boundary(
+    logical_operator: LogicalOperator,
+) {
     let mut cpu = CPU::reset(None);
     let mut memory = Memory::initialize();
 
@@ -437,7 +480,10 @@ fn test_logical_op_on_a_register_indirect_y_when_crossing_page_boundary(logical_
     assert_eq!(cpu.a_register, predicted_value);
 
     assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, predicted_value & 0b10000000 == 0b10000000);
+    assert_eq!(
+        cpu.status.negative,
+        predicted_value & 0b10000000 == 0b10000000
+    );
 
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
@@ -647,6 +693,8 @@ fn test_bit_zero_page() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0xCC;
+    cpu.status.overflow = false;
+    cpu.status.negative = false;
 
     memory[0xFFFC] = Instruction::InsBitZp as Byte;
 
@@ -671,6 +719,8 @@ fn test_bit_zero_page_modifies_zero_flag() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0xCC;
+    cpu.status.overflow = true;
+    cpu.status.negative = true;
 
     memory[0xFFFC] = Instruction::InsBitZp as Byte;
 
@@ -695,6 +745,8 @@ fn test_bit_zero_page_modifies_zero_negative_overflow_flag() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0x33;
+    cpu.status.overflow = false;
+    cpu.status.negative = false;
 
     memory[0xFFFC] = Instruction::InsBitZp as Byte;
 
@@ -719,12 +771,14 @@ fn test_bit_absolute() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0xCC;
+    cpu.status.overflow = false;
+    cpu.status.negative = false;
 
     memory[0xFFFC] = Instruction::InsBitAbs as Byte;
 
     memory[0xFFFD] = 0x00;
     memory[0xFFFE] = 0x80;
-    memory[0x8000] = 0x33;
+    memory[0x8000] = 0xCC;
 
     let cpu_copy = cpu.clone();
 
@@ -733,9 +787,9 @@ fn test_bit_absolute() {
     assert_eq!(cycles, Ok(4));
 
     assert_eq!(cpu.a_register, 0xCC);
-    assert_eq!(cpu.status.zero, true);
-    assert_eq!(cpu.status.overflow, false);
-    assert_eq!(cpu.status.negative, false);
+    assert_eq!(cpu.status.zero, false);
+    assert_eq!(cpu.status.overflow, true);
+    assert_eq!(cpu.status.negative, true);
 }
 
 #[test]
@@ -744,6 +798,8 @@ fn test_bit_absolute_modifies_zero_flag() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0xCC;
+    cpu.status.overflow = true;
+    cpu.status.negative = true;
 
     memory[0xFFFC] = Instruction::InsBitAbs as Byte;
 
@@ -769,6 +825,8 @@ fn test_bit_absolute_modifies_zero_negative_overflow_flag() {
     let mut memory = Memory::initialize();
 
     cpu.a_register = 0x33;
+    cpu.status.overflow = false;
+    cpu.status.negative = false;
 
     memory[0xFFFC] = Instruction::InsBitAbs as Byte;
 

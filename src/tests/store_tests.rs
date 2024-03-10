@@ -1,5 +1,6 @@
 use crate::{
-    cpu::{Byte, Instruction, InstructionsError, CPU},
+    cpu::{Byte, CPU},
+    instructions::{Instruction, InstructionsError},
     memory::Memory,
 };
 
