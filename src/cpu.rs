@@ -7,7 +7,7 @@ use crate::memory::Memory;
 pub type Byte = u8;
 pub type Word = u16;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct ProcessorFlags {
     pub carry: bool,
     pub zero: bool,
@@ -84,20 +84,6 @@ impl From<ProcessorFlags> for u8 {
     }
 }
 
-impl Default for ProcessorFlags {
-    fn default() -> Self {
-        ProcessorFlags {
-            carry: false,
-            zero: false,
-            interupt_disable: false,
-            decimal_mode: false,
-            break_command: false,
-            overflow: false,
-            negative: false,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct CPU {
     // Addresses
@@ -115,10 +101,7 @@ pub struct CPU {
 
 impl CPU {
     pub fn reset(reset_vector: Option<Word>) -> CPU {
-        let program_counter = match reset_vector {
-            Some(address) => address,
-            None => 0xFFFC,
-        };
+        let program_counter = reset_vector.unwrap_or(0xFFFC);
         CPU {
             program_counter,
             stack_pointer: 0xFF,
@@ -145,7 +128,7 @@ impl CPU {
     }
 
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
-        let cycles_requested = cycles as i32;
+        let cycles_requested = cycles;
         let mut cycles = cycles;
         while cycles > 0 {
             let instruction_byte = Instruction::try_from(self.fetch_byte(&mut cycles, memory))?;
@@ -780,5 +763,19 @@ impl CPU {
         let data = memory[self.stack_pointer_to_address()];
         *cycles -= 3;
         data
+    }
+
+    pub fn load_program(&self, program: &[Byte], num_bytes: u16, memory: &mut Memory) -> Word {
+        let mut load_address: Word = 0;
+        if num_bytes > 2 {
+            let mut at = 0;
+            load_address = program[at] as Word | ((program[at + 1] as Word) << 8);
+            at += 2;
+            for i in load_address..(load_address + num_bytes - 2) {
+                memory[i] = program[at];
+                at += 1;
+            }
+        }
+        load_address
     }
 }

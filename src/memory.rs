@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, Range};
 
 use crate::cpu::{Byte, Word};
 const MAX_MEM: usize = 1024 * 64;
@@ -32,5 +32,12 @@ impl Index<Byte> for Memory {
     type Output = Byte;
     fn index(&self, index: Byte) -> &Self::Output {
         &self.data[index as usize]
+    }
+}
+
+impl Index<Range<usize>> for Memory {
+    type Output = [Byte];
+    fn index(&self, index: Range<usize>) -> &Self::Output {
+        &self.data[index]
     }
 }
