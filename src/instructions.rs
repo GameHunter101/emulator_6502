@@ -86,6 +86,11 @@ pub enum Instruction {
     // BIT
     InsBitZp = 0x24,
     InsBitAbs = 0x2C,
+    // Transfer
+    InsTax = 0xAA,
+    InsTay = 0xA8,
+    InsTxa = 0x8A,
+    InsTya = 0x98,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -172,6 +177,11 @@ impl TryFrom<Byte> for Instruction {
             // BIT
             0x24 => Ok(Self::InsBitZp),
             0x2C => Ok(Self::InsBitAbs),
+            // Transfers
+            0xAA => Ok(Self::InsTax),
+            0xA8 => Ok(Self::InsTay),
+            0x8A => Ok(Self::InsTxa),
+            0x98 => Ok(Self::InsTya),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

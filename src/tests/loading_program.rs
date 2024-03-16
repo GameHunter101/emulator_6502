@@ -3,6 +3,17 @@ use crate::{
     memory::Memory,
 };
 
+/* 
+* * = $1000
+* lda #$xFF
+* 
+* start
+* sta $90
+* sta $8000
+* eor #$CC
+* jmp start
+* */
+
 static TEST_PROGRAM: [Byte; 14] = [
     0x00, 0x10, 0xA9, 0xFF, 0x85, 0x90, 0x8D, 0x00, 0x80, 0x49, 0xCC, 0x4C, 0x02, 0x10,
 ];
@@ -26,8 +37,9 @@ fn test_executing_program() {
     let start_address = cpu.load_program(&TEST_PROGRAM, 14, &mut memory);
     cpu.program_counter = start_address;
 
-    for _ in 0..10000 {
-        cpu.execute(20, &mut memory);
-        println!("A: {:0x}, PC: {:0x}, SP: {:0x}", cpu.a_register, cpu.program_counter, cpu.stack_pointer);
+    let mut clock =  1000;
+    while clock > 0 {
+        clock -= cpu.execute(1, &mut memory).unwrap();
+        println!("{cpu}");
     }
 }

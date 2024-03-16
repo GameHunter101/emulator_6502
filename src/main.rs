@@ -11,11 +11,11 @@ pub mod memory;
 mod tests {
     pub mod jumps_and_calls_tests;
     pub mod load_tests;
+    pub mod loading_program;
     pub mod logical_ops_tests;
     pub mod stack_operations_tests;
     pub mod store_tests;
-    pub mod loading_program;
+    pub mod transfer_register_tests;
 }
 
-fn main() {
-}
+fn main() {}

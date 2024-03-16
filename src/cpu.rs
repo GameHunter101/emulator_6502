@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::instructions::{Instruction, InstructionsError};
-use std::ops::BitOrAssign;
+use std::{fmt::Display, ops::BitOrAssign};
 
 use crate::memory::Memory;
 
@@ -649,6 +649,27 @@ impl CPU {
                     self.status.negative = (value & ProcessorFlags::NEGATIVE_FLAG_BIT) != 0;
                     self.status.overflow = (value & ProcessorFlags::OVERFLOW_FLAG_BIT) != 0;
                 }
+                // Transfers
+                Instruction::InsTax => {
+                    self.x_register = self.a_register;
+                    cycles -= 1;
+                    self.lda_set_status();
+                }
+                Instruction::InsTay => {
+                    self.y_register = self.a_register;
+                    cycles -= 1;
+                    self.lda_set_status();
+                }
+                Instruction::InsTxa => {
+                    self.a_register = self.x_register;
+                    cycles -= 1;
+                    self.lda_set_status();
+                }
+                Instruction::InsTya => {
+                    self.a_register = self.y_register;
+                    cycles -= 1;
+                    self.lda_set_status();
+                }
                 _ => {
                     break;
                 }
@@ -777,5 +798,20 @@ impl CPU {
             }
         }
         load_address
+    }
+}
+
+impl Display for CPU {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "A: 0x{:0x}, X: 0x{:0x}, Y: 0x{:0x}\nPC: 0x{:0x}, SP: 0x{:0x}\nPS: 0b{:0b}",
+            self.a_register,
+            self.x_register,
+            self.y_register,
+            self.program_counter,
+            self.stack_pointer,
+            self.status.into_u8(),
+        )
     }
 }
