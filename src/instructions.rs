@@ -1,6 +1,5 @@
 use crate::cpu::Byte;
 
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum InstructionsError {
     InstructionDoesntExist(Byte),
@@ -91,6 +90,22 @@ pub enum Instruction {
     InsTay = 0xA8,
     InsTxa = 0x8A,
     InsTya = 0x98,
+    // Increments
+    InsInx = 0xE8,
+    InsIny = 0xC8,
+    // Decrements
+    InsDex = 0xCA,
+    InsDey = 0x88,
+    // DEC
+    InsDecZp = 0xC6,
+    InsDecZpX = 0xD6,
+    InsDecAbs = 0xCE,
+    InsDecAbsX = 0xDE,
+    // INC
+    InsIncZp = 0xE6,
+    InsIncZpX = 0xF6,
+    InsIncAbs = 0xEE,
+    InsIncAbsX = 0xFE,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -182,6 +197,22 @@ impl TryFrom<Byte> for Instruction {
             0xA8 => Ok(Self::InsTay),
             0x8A => Ok(Self::InsTxa),
             0x98 => Ok(Self::InsTya),
+            // Increments
+            0xE8 => Ok(Self::InsInx),
+            0xC8 => Ok(Self::InsIny),
+            // Decrements
+            0xCA => Ok(Self::InsDex),
+            0x88 => Ok(Self::InsDey),
+            // DEC
+            0xC6 => Ok(Self::InsDecZp),
+            0xD6 => Ok(Self::InsDecZpX),
+            0xCE => Ok(Self::InsDecAbs),
+            0xDE => Ok(Self::InsDecAbsX),
+            // INC
+            0xE6 => Ok(Self::InsIncZp),
+            0xF6 => Ok(Self::InsIncZpX),
+            0xEE => Ok(Self::InsIncAbs),
+            0xFE => Ok(Self::InsIncAbsX),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

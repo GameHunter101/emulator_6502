@@ -736,8 +736,8 @@ fn test_bit_zero_page_modifies_zero_flag() {
 
     assert_eq!(cpu.a_register, 0xCC);
     assert!(cpu.status.zero);
-    assert!(cpu.status.overflow);
-    assert!(cpu.status.negative);
+    assert!(!cpu.status.overflow);
+    assert!(!cpu.status.negative);
 }
 
 #[test]

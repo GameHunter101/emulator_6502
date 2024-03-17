@@ -16,6 +16,7 @@ mod tests {
     pub mod stack_operations_tests;
     pub mod store_tests;
     pub mod transfer_register_tests;
+    pub mod inc_dec_tests;
 }
 
 fn main() {}
