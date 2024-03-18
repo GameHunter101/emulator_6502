@@ -5,6 +5,7 @@ use std::{fmt::Display, ops::BitOrAssign};
 use crate::memory::Memory;
 
 pub type Byte = u8;
+pub type SByte = i8;
 pub type Word = u16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -771,6 +772,20 @@ impl CPU {
                     self.write_byte(value, absolute_address_x, &mut cycles, memory);
                     self.set_z_n_flags(value);
                 }
+                Instruction::InsBeq => {
+                    let jump_offset = self.fetch_byte(&mut cycles, memory) as SByte;
+                    if self.status.zero {
+                        let program_counter_old = self.program_counter;
+                        self.program_counter = self.program_counter.wrapping_add(jump_offset as Word);
+                        cycles -= 1;
+                        if (!CPU::check_same_page(
+                            program_counter_old,
+                            self.program_counter,
+                        )) {
+                            cycles -= 1;
+                        }
+                    }
+                }
                 _ => {
                     break;
                 }
@@ -780,7 +795,7 @@ impl CPU {
     }
 
     pub fn check_same_page(address_a: Word, address_b: Word) -> bool {
-        address_a / 256 == address_b / 256
+        address_a >> 8 == address_b >> 8
     }
 
     pub fn fetch_byte(&mut self, cycles: &mut i32, memory: &mut Memory) -> Byte {
@@ -900,6 +915,12 @@ impl CPU {
         }
         load_address
     }
+
+    /* pub fn program_counter_signed_add(&mut self, offset: SByte) {
+        let pc_bytes = self.program_counter.to_le_bytes();
+        let (addition, overflow) = pc_bytes[0].overflowing_add_signed(offset);
+        let new_high_byte = 
+    } */
 }
 
 impl Display for CPU {
