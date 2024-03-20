@@ -118,6 +118,18 @@ impl CPU {
         self.status.negative = (value & ProcessorFlags::NEGATIVE_FLAG_BIT) > 0;
     }
 
+    pub fn branch_if(&mut self, cycles: &mut i32, memory: &mut Memory, test: bool, expected: bool) {
+        let jump_offset = self.fetch_byte(cycles, memory) as SByte;
+        if test == expected {
+            let program_counter_old = self.program_counter;
+            self.program_counter = self.program_counter.wrapping_add(jump_offset as Word);
+            *cycles -= 1;
+            if (!CPU::check_same_page(program_counter_old, self.program_counter)) {
+                *cycles -= 1;
+            }
+        }
+    }
+
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
         let cycles_requested = cycles;
         let mut cycles = cycles;
@@ -772,19 +784,30 @@ impl CPU {
                     self.write_byte(value, absolute_address_x, &mut cycles, memory);
                     self.set_z_n_flags(value);
                 }
+                // Branching
                 Instruction::InsBeq => {
-                    let jump_offset = self.fetch_byte(&mut cycles, memory) as SByte;
-                    if self.status.zero {
-                        let program_counter_old = self.program_counter;
-                        self.program_counter = self.program_counter.wrapping_add(jump_offset as Word);
-                        cycles -= 1;
-                        if (!CPU::check_same_page(
-                            program_counter_old,
-                            self.program_counter,
-                        )) {
-                            cycles -= 1;
-                        }
-                    }
+                    self.branch_if(&mut cycles, memory, self.status.zero, true);
+                }
+                Instruction::InsBne => {
+                    self.branch_if(&mut cycles, memory, self.status.zero, false);
+                }
+                Instruction::InsBcs => {
+                    self.branch_if(&mut cycles, memory, self.status.carry, true);
+                }
+                Instruction::InsBcc => {
+                    self.branch_if(&mut cycles, memory, self.status.carry, false);
+                }
+                Instruction::InsBmi => {
+                    self.branch_if(&mut cycles, memory, self.status.negative, true);
+                }
+                Instruction::InsBpl => {
+                    self.branch_if(&mut cycles, memory, self.status.negative, false);
+                }
+                Instruction::InsBvs => {
+                    self.branch_if(&mut cycles, memory, self.status.overflow, true);
+                }
+                Instruction::InsBvc => {
+                    self.branch_if(&mut cycles, memory, self.status.overflow, false);
                 }
                 _ => {
                     break;
@@ -915,12 +938,6 @@ impl CPU {
         }
         load_address
     }
-
-    /* pub fn program_counter_signed_add(&mut self, offset: SByte) {
-        let pc_bytes = self.program_counter.to_le_bytes();
-        let (addition, overflow) = pc_bytes[0].overflowing_add_signed(offset);
-        let new_high_byte = 
-    } */
 }
 
 impl Display for CPU {

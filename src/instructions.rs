@@ -108,6 +108,13 @@ pub enum Instruction {
     InsIncAbsX = 0xFE,
     // Branch
     InsBeq = 0xF0,
+    InsBne = 0xD0,
+    InsBcs = 0xB0,
+    InsBcc = 0x90,
+    InsBmi = 0x30,
+    InsBpl = 0x10,
+    InsBvs = 0x70,
+    InsBvc = 0x50,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -217,6 +224,13 @@ impl TryFrom<Byte> for Instruction {
             0xFE => Ok(Self::InsIncAbsX),
             // Branch
             0xF0 => Ok(Self::InsBeq),
+            0xD0 => Ok(Self::InsBne),
+            0xB0 => Ok(Self::InsBcs),
+            0x90 => Ok(Self::InsBcc),
+            0x30 => Ok(Self::InsBmi),
+            0x10 => Ok(Self::InsBpl),
+            0x70 => Ok(Self::InsBvs),
+            0x50 => Ok(Self::InsBvc),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }
