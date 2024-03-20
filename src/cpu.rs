@@ -809,6 +809,39 @@ impl CPU {
                 Instruction::InsBvc => {
                     self.branch_if(&mut cycles, memory, self.status.overflow, false);
                 }
+                // Status flags
+                Instruction::InsClc => {
+                    self.status.carry = false;
+                    cycles -= 1;
+                }
+                Instruction::InsSec => {
+                    self.status.carry = true;
+                    cycles -= 1;
+                }
+                Instruction::InsCld => {
+                    self.status.decimal_mode = false;
+                    cycles -= 1;
+                }
+                Instruction::InsSed => {
+                    self.status.decimal_mode = true;
+                    cycles -= 1;
+                }
+                Instruction::InsCli => {
+                    self.status.interupt_disable = false;
+                    cycles -= 1;
+                }
+                Instruction::InsSei => {
+                    self.status.interupt_disable = true;
+                    cycles -= 1;
+                }
+                Instruction::InsClv => {
+                    self.status.overflow = false;
+                    cycles -= 1;
+                }
+                // Misc
+                Instruction::InsNop => {
+                    cycles -= 1;
+                }
                 _ => {
                     break;
                 }

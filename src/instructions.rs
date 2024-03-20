@@ -115,6 +115,16 @@ pub enum Instruction {
     InsBpl = 0x10,
     InsBvs = 0x70,
     InsBvc = 0x50,
+    // Status flags
+    InsClc = 0x18,
+    InsSec = 0x38,
+    InsCld = 0xD8,
+    InsSed = 0xF8,
+    InsCli = 0x58,
+    InsSei = 0x78,
+    InsClv = 0xB8,
+    // Misc
+    InsNop = 0xEA,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -231,6 +241,16 @@ impl TryFrom<Byte> for Instruction {
             0x10 => Ok(Self::InsBpl),
             0x70 => Ok(Self::InsBvs),
             0x50 => Ok(Self::InsBvc),
+            // Status flags
+            0x18 => Ok(Self::InsClc),
+            0x38 => Ok(Self::InsSec),
+            0xD8 => Ok(Self::InsCld),
+            0xF8 => Ok(Self::InsSed),
+            0x58 => Ok(Self::InsCli),
+            0x78 => Ok(Self::InsSei),
+            0xB8 => Ok(Self::InsClv),
+            // Misc
+            0xEA => Ok(Self::InsNop),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

@@ -18,6 +18,8 @@ mod tests {
     pub mod transfer_register_tests;
     pub mod inc_dec_tests;
     pub mod branch_tests;
+    pub mod status_changes_tests;
+    pub mod miscellaneous_tests;
 }
 
 fn main() {}
