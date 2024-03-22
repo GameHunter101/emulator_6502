@@ -20,6 +20,7 @@ mod tests {
     pub mod branch_tests;
     pub mod status_changes_tests;
     pub mod miscellaneous_tests;
+    pub mod add_with_carry_tests;
 }
 
 fn main() {}

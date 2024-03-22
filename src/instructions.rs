@@ -56,14 +56,14 @@ pub enum Instruction {
     InsPla = 0x68,
     InsPlp = 0x28,
     // AND
-    InsAndIm = 0x69,
-    InsAndZp = 0x65,
-    InsAndZpX = 0x75,
-    InsAndAbs = 0x6D,
-    InsAndAbsX = 0x7D,
-    InsAndAbsY = 0x79,
-    InsAndIndX = 0x61,
-    InsAndIndY = 0x71,
+    InsAndIm = 0x29,
+    InsAndZp = 0x25,
+    InsAndZpX = 0x35,
+    InsAndAbs = 0x2D,
+    InsAndAbsX = 0x3D,
+    InsAndAbsY = 0x39,
+    InsAndIndX = 0x21,
+    InsAndIndY = 0x31,
     // EOR
     InsEorIm = 0x49,
     InsEorZp = 0x45,
@@ -125,6 +125,15 @@ pub enum Instruction {
     InsClv = 0xB8,
     // Misc
     InsNop = 0xEA,
+    // ADC
+    InsAdcIm = 0x69,
+    InsAdcZp = 0x65,
+    InsAdcZpX = 0x75,
+    InsAdcAbs = 0x6D,
+    InsAdcAbsX = 0x7D,
+    InsAdcAbsY = 0x79,
+    InsAdcIndX = 0x61,
+    InsAdcIndY = 0x71,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -182,14 +191,14 @@ impl TryFrom<Byte> for Instruction {
             0x68 => Ok(Self::InsPla),
             0x28 => Ok(Self::InsPlp),
             // AND
-            0x69 => Ok(Self::InsAndIm),
-            0x65 => Ok(Self::InsAndZp),
-            0x75 => Ok(Self::InsAndZpX),
-            0x6D => Ok(Self::InsAndAbs),
-            0x7D => Ok(Self::InsAndAbsX),
-            0x79 => Ok(Self::InsAndAbsY),
-            0x61 => Ok(Self::InsAndIndX),
-            0x71 => Ok(Self::InsAndIndY),
+            0x29 => Ok(Self::InsAndIm),
+            0x25 => Ok(Self::InsAndZp),
+            0x35 => Ok(Self::InsAndZpX),
+            0x2D => Ok(Self::InsAndAbs),
+            0x3D => Ok(Self::InsAndAbsX),
+            0x39 => Ok(Self::InsAndAbsY),
+            0x21 => Ok(Self::InsAndIndX),
+            0x31 => Ok(Self::InsAndIndY),
             // EOR
             0x49 => Ok(Self::InsEorIm),
             0x45 => Ok(Self::InsEorZp),
@@ -251,6 +260,15 @@ impl TryFrom<Byte> for Instruction {
             0xB8 => Ok(Self::InsClv),
             // Misc
             0xEA => Ok(Self::InsNop),
+            // ADC
+            0x69 => Ok(Self::InsAdcIm),
+            0x65 => Ok(Self::InsAdcZp),
+            0x75 => Ok(Self::InsAdcZpX),
+            0x6D => Ok(Self::InsAdcAbs),
+            0x7D => Ok(Self::InsAdcAbsX),
+            0x79 => Ok(Self::InsAdcAbsY),
+            0x61 => Ok(Self::InsAdcIndX),
+            0x71 => Ok(Self::InsAdcIndY),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }
