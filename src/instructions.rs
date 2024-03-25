@@ -134,6 +134,15 @@ pub enum Instruction {
     InsAdcAbsY = 0x79,
     InsAdcIndX = 0x61,
     InsAdcIndY = 0x71,
+    // CMP
+    InsCmpIm = 0xC9,
+    InsCmpZp = 0xC5,
+    InsCmpZpX = 0xD5,
+    InsCmpAbs = 0xCD,
+    InsCmpAbsX = 0xDD,
+    InsCmpAbsY = 0xD9,
+    InsCmpIndX = 0xC1,
+    InsCmpIndY = 0xD1,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -269,6 +278,15 @@ impl TryFrom<Byte> for Instruction {
             0x79 => Ok(Self::InsAdcAbsY),
             0x61 => Ok(Self::InsAdcIndX),
             0x71 => Ok(Self::InsAdcIndY),
+            // CMP
+            0xC9 => Ok(Self::InsCmpIm),
+            0xC5 => Ok(Self::InsCmpZp),
+            0xD5 => Ok(Self::InsCmpZpX),
+            0xCD => Ok(Self::InsCmpAbs),
+            0xDD => Ok(Self::InsCmpAbsX),
+            0xD9 => Ok(Self::InsCmpAbsY),
+            0xC1 => Ok(Self::InsCmpIndX),
+            0xD1 => Ok(Self::InsCmpIndY),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

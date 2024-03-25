@@ -143,6 +143,13 @@ impl CPU {
             && (rhs ^ self.a_register) & ProcessorFlags::NEGATIVE_FLAG_BIT != 0;
     }
 
+    fn compare_register(&mut self, register: Byte, rhs: Byte) {
+        let (comparison, negative) = register.overflowing_sub(rhs);
+        self.status.negative = negative;
+        self.status.zero = comparison == 0;
+        self.status.carry = !negative;
+    }
+
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
         let cycles_requested = cycles;
         let mut cycles = cycles;
@@ -746,7 +753,7 @@ impl CPU {
                 }
                 Instruction::InsDecAbsX => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
-                    let absolute_address_x = absolute_address.wrapping_add(self.x_register as Word);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
                     cycles -= 1;
                     let value = self
                         .read_byte(&mut cycles, memory, absolute_address_x)
@@ -787,7 +794,7 @@ impl CPU {
                 }
                 Instruction::InsIncAbsX => {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
-                    let absolute_address_x = absolute_address.wrapping_add(self.x_register as Word);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
                     cycles -= 1;
                     let value = self
                         .read_byte(&mut cycles, memory, absolute_address_x)
@@ -866,7 +873,7 @@ impl CPU {
                 }
                 Instruction::InsAdcZpX => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let zero_page_address_x = zero_page_address + self.x_register;
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
                     let rhs = self.read_byte(&mut cycles, memory, zero_page_address_x as Word);
                     self.add_with_carry(&mut cycles, memory, rhs);
@@ -898,11 +905,72 @@ impl CPU {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
                     let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
                     cycles -= 1;
-                    let indirect_address = self.read_word_absolute(&mut cycles, memory, zero_page_address_x as Word);
+                    let indirect_address =
+                        self.read_word_absolute(&mut cycles, memory, zero_page_address_x as Word);
                     let rhs = self.read_byte(&mut cycles, memory, indirect_address);
                     self.add_with_carry(&mut cycles, memory, rhs);
                 }
                 Instruction::InsAdcIndY => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let indirect_address_y = indirect_address + self.y_register as Word;
+                    if !CPU::check_same_page(indirect_address, indirect_address_y) {
+                        cycles -= 1;
+                    }
+                    let rhs = self.read_byte(&mut cycles, memory, indirect_address_y);
+                    self.add_with_carry(&mut cycles, memory, rhs);
+                }
+                // CMP
+                Instruction::InsCmpIm => {
+                    let rhs = self.fetch_byte(&mut cycles, memory);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let rhs = self.read_byte(&mut cycles, memory, zero_page_address_x as Word);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    if !CPU::check_same_page(absolute_address, absolute_address_x) {
+                        cycles -= 1;
+                    }
+                    let rhs = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpAbsY => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_y = absolute_address + self.y_register as Word;
+                    if !CPU::check_same_page(absolute_address, absolute_address_y) {
+                        cycles -= 1;
+                    }
+                    let rhs = self.read_byte(&mut cycles, memory, absolute_address_y);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpIndX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x = zero_page_address.wrapping_add(self.x_register);
+                    cycles -= 1;
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address_x);
+                    let rhs = self.read_byte(&mut cycles, memory, indirect_address);
+                    self.compare_register(self.a_register, rhs);
+                }
+                Instruction::InsCmpIndY => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
                     let indirect_address = self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
                     let indirect_address_y = indirect_address + self.y_register as Word;
@@ -910,7 +978,7 @@ impl CPU {
                         cycles -= 1;
                     }
                     let rhs = self.read_byte(&mut cycles, memory, indirect_address_y);
-                    self.add_with_carry(&mut cycles, memory, rhs);
+                    self.compare_register(self.a_register, rhs);
                 }
                 _ => {
                     break;

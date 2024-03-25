@@ -362,7 +362,7 @@ fn test_ind_y_page_cross(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-
+// Immediate
 #[test]
 fn adc_immediate_can_add_two_unsigned_numbers() {
     test_im(AdcTestData {
@@ -397,6 +397,7 @@ fn adc_immediate_can_add_positive_and_negative_numbers() {
     });
 }
 
+// Zero Page
 #[test]
 fn adc_zero_page_can_add_two_unsigned_numbers() {
     test_zp(AdcTestData {
@@ -431,6 +432,7 @@ fn adc_zero_page_can_add_positive_and_negative_numbers() {
     });
 }
 
+// Zero Page X
 #[test]
 fn adc_zero_page_x_can_add_two_unsigned_numbers() {
     test_zp_x(AdcTestData {
@@ -465,6 +467,7 @@ fn adc_zero_page_x_can_add_positive_and_negative_numbers() {
     });
 }
 
+// Absolute
 #[test]
 fn adc_absolute_zero_plus_zero_equals_zero() {
     test_abs(AdcTestData {
@@ -508,7 +511,7 @@ fn adc_absolute_ff_plus_one_causes_carry() {
 }
 
 #[test]
-fn adc_will_set_negative_flag_when_negative_result() {
+fn adc_absolute_will_set_negative_flag_when_negative_result() {
     test_abs(AdcTestData {
         carry_before: false,
         lhs: 0x0,
@@ -522,7 +525,7 @@ fn adc_will_set_negative_flag_when_negative_result() {
 }
 
 #[test]
-fn adc_will_set_overflow_flag_when_signed_negative_addition_fails() {
+fn adc_absolute_will_set_overflow_flag_when_signed_negative_addition_fails() {
     /*
      * lhs: 10000000 | -128
      * rhs: 11111111 | -1
@@ -542,7 +545,7 @@ fn adc_will_set_overflow_flag_when_signed_negative_addition_fails() {
 }
 
 #[test]
-fn adc_will_set_overflow_flag_when_signed_negative_addition_succeeds_due_to_carry() {
+fn adc_absolute_will_set_overflow_flag_when_signed_negative_addition_succeeds_due_to_carry() {
     /*
      * c:   00000001 | 1
      * lhs: 10000000 | -128
@@ -563,7 +566,7 @@ fn adc_will_set_overflow_flag_when_signed_negative_addition_succeeds_due_to_carr
 }
 
 #[test]
-fn adc_will_set_overflow_flag_when_signed_positive_addition_fails() {
+fn adc_absolute_will_set_overflow_flag_when_signed_positive_addition_fails() {
     /*
      * lhs: 01111111 | 127
      * rhs: 00000001 | 1
@@ -616,6 +619,7 @@ fn adc_absolute_can_add_positive_and_negative_numbers() {
     });
 }
 
+// Absolute X
 #[test]
 fn adc_absolute_x_can_add_two_unsigned_numbers() {
     test_abs_x(AdcTestData {
@@ -684,6 +688,7 @@ fn adc_absolute_x_can_add_positive_and_negative_numbers_when_crossing_page() {
     });
 }
 
+// Absolute Y
 #[test]
 fn adc_absolute_y_can_add_two_unsigned_numbers() {
     test_abs_y(AdcTestData {
@@ -752,6 +757,7 @@ fn adc_absolute_y_can_add_positive_and_negative_numbers_when_crossing_page() {
     });
 }
 
+// Indirect X
 #[test]
 fn adc_indirect_x_can_add_two_unsigned_numbers() {
     test_ind_x(AdcTestData {
@@ -786,6 +792,7 @@ fn adc_indirect_x_can_add_positive_and_negative_numbers() {
     });
 }
 
+// Indirect Y
 #[test]
 fn adc_indirect_y_can_add_two_unsigned_numbers() {
     test_ind_y(AdcTestData {

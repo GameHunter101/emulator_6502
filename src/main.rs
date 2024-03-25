@@ -21,6 +21,7 @@ mod tests {
     pub mod status_changes_tests;
     pub mod miscellaneous_tests;
     pub mod add_with_carry_tests;
+    pub mod compare_register_tests;
 }
 
 fn main() {}
