@@ -980,6 +980,36 @@ impl CPU {
                     let rhs = self.read_byte(&mut cycles, memory, indirect_address_y);
                     self.compare_register(self.a_register, rhs);
                 }
+                // CPX
+                Instruction::InsCpxIm => {
+                    let rhs = self.fetch_byte(&mut cycles, memory);
+                    self.compare_register(self.x_register, rhs);
+                }
+                Instruction::InsCpxZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.compare_register(self.x_register, rhs);
+                }
+                Instruction::InsCpxAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    self.compare_register(self.x_register, rhs);
+                }
+                // CPY
+                Instruction::InsCpyIm => {
+                    let rhs = self.fetch_byte(&mut cycles, memory);
+                    self.compare_register(self.y_register, rhs);
+                }
+                Instruction::InsCpyZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, zero_page_address as Word);
+                    self.compare_register(self.y_register, rhs);
+                }
+                Instruction::InsCpyAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let rhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    self.compare_register(self.y_register, rhs);
+                }
                 _ => {
                     break;
                 }
