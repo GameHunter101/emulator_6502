@@ -25,7 +25,7 @@ struct AdcTestData {
     expect_v: bool,
 }
 
-fn test_im(data: AdcTestData) {
+fn test_im(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -38,7 +38,11 @@ fn test_im(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcIm as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcIm
+    } else {
+        Instruction::InsSbcIm
+    } as Byte;
     memory[0xFF01] = data.rhs;
 
     let cycles = cpu.execute(2, &mut memory);
@@ -53,7 +57,7 @@ fn test_im(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_zp(data: AdcTestData) {
+fn test_zp(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -66,7 +70,11 @@ fn test_zp(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcZp as Byte;
+    memory[0xFF00] = if (add) {
+        Instruction::InsAdcZp
+    } else {
+        Instruction::InsSbcZp
+    } as Byte;
     memory[0xFF01] = 0x42;
     memory[0x0042] = data.rhs;
 
@@ -82,7 +90,7 @@ fn test_zp(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_zp_x(data: AdcTestData) {
+fn test_zp_x(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -96,7 +104,11 @@ fn test_zp_x(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcZpX as Byte;
+    memory[0xFF00] = if (add) {
+        Instruction::InsAdcZpX
+    } else {
+        Instruction::InsSbcZpX
+    } as Byte;
     memory[0xFF01] = 0x42;
     memory[0x0047] = data.rhs;
 
@@ -112,7 +124,7 @@ fn test_zp_x(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_abs(data: AdcTestData) {
+fn test_abs(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -125,7 +137,11 @@ fn test_abs(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcAbs as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcAbs
+    } else {
+        Instruction::InsSbcAbs
+    } as Byte;
     memory[0xFF01] = 0x00;
     memory[0xFF02] = 0x80;
     memory[0x8000] = data.rhs;
@@ -142,7 +158,7 @@ fn test_abs(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_abs_x(data: AdcTestData) {
+fn test_abs_x(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -156,7 +172,11 @@ fn test_abs_x(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcAbsX as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcAbsX
+    } else {
+        Instruction::InsSbcAbsX
+    } as Byte;
     memory[0xFF01] = 0x00;
     memory[0xFF02] = 0x80;
     memory[0x8005] = data.rhs;
@@ -173,7 +193,7 @@ fn test_abs_x(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_abs_x_page_cross(data: AdcTestData) {
+fn test_abs_x_page_cross(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -187,7 +207,11 @@ fn test_abs_x_page_cross(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcAbsX as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcAbsX
+    } else {
+        Instruction::InsSbcAbsX
+    } as Byte;
     memory[0xFF01] = 0x01;
     memory[0xFF02] = 0x80;
     memory[0x8100] = data.rhs;
@@ -204,7 +228,7 @@ fn test_abs_x_page_cross(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_abs_y(data: AdcTestData) {
+fn test_abs_y(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -218,7 +242,11 @@ fn test_abs_y(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcAbsY as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcAbsY
+    } else {
+        Instruction::InsSbcAbsY
+    } as Byte;
     memory[0xFF01] = 0x00;
     memory[0xFF02] = 0x80;
     memory[0x8005] = data.rhs;
@@ -235,7 +263,7 @@ fn test_abs_y(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_abs_y_page_cross(data: AdcTestData) {
+fn test_abs_y_page_cross(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -249,7 +277,11 @@ fn test_abs_y_page_cross(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcAbsY as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcAbsY
+    } else {
+        Instruction::InsSbcAbsY
+    } as Byte;
     memory[0xFF01] = 0x01;
     memory[0xFF02] = 0x80;
     memory[0x8100] = data.rhs;
@@ -266,7 +298,7 @@ fn test_abs_y_page_cross(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_ind_x(data: AdcTestData) {
+fn test_ind_x(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -280,7 +312,11 @@ fn test_ind_x(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcIndX as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcIndX
+    } else {
+        Instruction::InsSbcIndX
+    } as Byte;
     memory[0xFF01] = 0x42;
     memory[0x0047] = 0x92;
     memory[0x0048] = 0xAC;
@@ -298,7 +334,7 @@ fn test_ind_x(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_ind_y(data: AdcTestData) {
+fn test_ind_y(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -312,7 +348,11 @@ fn test_ind_y(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcIndY as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcIndY
+    } else {
+        Instruction::InsSbcIndY
+    } as Byte;
     memory[0xFF01] = 0x42;
     memory[0x0042] = 0x92;
     memory[0x0043] = 0xAC;
@@ -330,7 +370,7 @@ fn test_ind_y(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
-fn test_ind_y_page_cross(data: AdcTestData) {
+fn test_ind_y_page_cross(data: AdcTestData, add: bool) {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -344,7 +384,11 @@ fn test_ind_y_page_cross(data: AdcTestData) {
 
     let cpu_copy = cpu;
 
-    memory[0xFF00] = Instruction::InsAdcIndY as Byte;
+    memory[0xFF00] = if add {
+        Instruction::InsAdcIndY
+    } else {
+        Instruction::InsSbcIndY
+    } as Byte;
     memory[0xFF01] = 0x42;
     memory[0x0042] = 0x92;
     memory[0x0043] = 0xAC;
@@ -362,166 +406,198 @@ fn test_ind_y_page_cross(data: AdcTestData) {
     verify_unmodified_flags(&cpu, &cpu_copy);
 }
 
+// ADC
+
 // Immediate
 #[test]
 fn adc_immediate_can_add_two_unsigned_numbers() {
-    test_im(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_im(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_immediate_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_im(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_im(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Zero Page
 #[test]
 fn adc_zero_page_can_add_two_unsigned_numbers() {
-    test_zp(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_zp(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_zero_page_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_zp(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_zp(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Zero Page X
 #[test]
 fn adc_zero_page_x_can_add_two_unsigned_numbers() {
-    test_zp_x(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_zp_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_zero_page_x_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_zp_x(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_zp_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Absolute
 #[test]
 fn adc_absolute_zero_plus_zero_equals_zero() {
-    test_abs(AdcTestData {
-        carry_before: false,
-        lhs: 0x0,
-        rhs: 0x0,
-        expected_answer: 0x0,
-        expect_c: false,
-        expect_z: true,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 0x0,
+            rhs: 0x0,
+            expected_answer: 0x0,
+            expect_c: false,
+            expect_z: true,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_zero_plus_zero_equals_one() {
-    test_abs(AdcTestData {
-        carry_before: true,
-        lhs: 0x0,
-        rhs: 0x0,
-        expected_answer: 0x1,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 0x0,
+            rhs: 0x0,
+            expected_answer: 0x1,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_ff_plus_one_causes_carry() {
-    test_abs(AdcTestData {
-        carry_before: false,
-        lhs: 0xFF,
-        rhs: 0x01,
-        expected_answer: 0x0,
-        expect_c: true,
-        expect_z: true,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 0xFF,
+            rhs: 0x01,
+            expected_answer: 0x0,
+            expect_c: true,
+            expect_z: true,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_will_set_negative_flag_when_negative_result() {
-    test_abs(AdcTestData {
-        carry_before: false,
-        lhs: 0x0,
-        rhs: (-0x01_i8) as Byte,
-        expected_answer: (-0x01_i8) as Byte,
-        expect_c: false,
-        expect_z: false,
-        expect_n: true,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 0x0,
+            rhs: (-0x01_i8) as Byte,
+            expected_answer: (-0x01_i8) as Byte,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
@@ -532,16 +608,19 @@ fn adc_absolute_will_set_overflow_flag_when_signed_negative_addition_fails() {
      * ans: 01111111 | 127
      * C:1, Z:0, N:0, V:1
      * */
-    test_abs(AdcTestData {
-        carry_before: false,
-        lhs: (-128_i8) as Byte,
-        rhs: (-0x01_i8) as Byte,
-        expected_answer: 127,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: true,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: (-128_i8) as Byte,
+            rhs: (-0x01_i8) as Byte,
+            expected_answer: 127,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: true,
+        },
+        true,
+    );
 }
 
 #[test]
@@ -553,16 +632,19 @@ fn adc_absolute_will_set_overflow_flag_when_signed_negative_addition_succeeds_du
      * ans: 10000000 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_abs(AdcTestData {
-        carry_before: true,
-        lhs: (-128_i8) as Byte,
-        rhs: (-0x01_i8) as Byte,
-        expected_answer: (-128_i8) as Byte,
-        expect_c: true,
-        expect_z: false,
-        expect_n: true,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: (-128_i8) as Byte,
+            rhs: (-0x01_i8) as Byte,
+            expected_answer: (-128_i8) as Byte,
+            expect_c: true,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
@@ -573,50 +655,59 @@ fn adc_absolute_will_set_overflow_flag_when_signed_positive_addition_fails() {
      * ans: 10000000 | -128
      * C:0, Z:0, N:0, V:1
      * */
-    test_abs(AdcTestData {
-        carry_before: false,
-        lhs: 127,
-        rhs: 1,
-        expected_answer: 128,
-        expect_c: false,
-        expect_z: false,
-        expect_n: true,
-        expect_v: true,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 127,
+            rhs: 1,
+            expected_answer: 128,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: true,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_can_add_two_unsigned_numbers() {
-    test_abs(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_abs(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Absolute X
@@ -631,13 +722,13 @@ fn adc_absolute_x_can_add_two_unsigned_numbers() {
         expect_z: false,
         expect_n: false,
         expect_v: false,
-    });
+    }, true);
 }
 
 #[test]
 fn adc_absolute_x_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
@@ -651,212 +742,728 @@ fn adc_absolute_x_can_add_positive_and_negative_numbers() {
         expect_z: false,
         expect_n: false,
         expect_v: false,
-    });
+    }, true);
 }
 
 #[test]
 fn adc_absolute_x_can_add_two_unsigned_numbers_when_crossing_page() {
-    test_abs_x_page_cross(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_x_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_x_can_add_positive_and_negative_numbers_when_crossing_page() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_abs_x_page_cross(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_x_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Absolute Y
 #[test]
 fn adc_absolute_y_can_add_two_unsigned_numbers() {
-    test_abs_y(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_y_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_abs_y(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_y_can_add_two_unsigned_numbers_when_crossing_page() {
-    test_abs_y_page_cross(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_absolute_y_can_add_positive_and_negative_numbers_when_crossing_page() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_abs_y_page_cross(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_abs_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Indirect X
 #[test]
 fn adc_indirect_x_can_add_two_unsigned_numbers() {
-    test_ind_x(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_ind_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_indirect_x_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_ind_x(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_ind_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 // Indirect Y
 #[test]
 fn adc_indirect_y_can_add_two_unsigned_numbers() {
-    test_ind_y(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_ind_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_indirect_y_can_add_positive_and_negative_numbers() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_ind_y(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
-        expect_c: true,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_ind_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_indirect_y_can_add_two_unsigned_numbers_when_crossing_page() {
-    test_ind_y_page_cross(AdcTestData {
-        carry_before: true,
-        lhs: 20,
-        rhs: 17,
-        expected_answer: 38,
-        expect_c: false,
-        expect_z: false,
-        expect_n: false,
-        expect_v: false,
-    });
+    test_ind_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 38,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
 }
 
 #[test]
 fn adc_indirect_y_can_add_positive_and_negative_numbers_when_crossing_page() {
     /*
-     * lhs: 00010100 | 20 
+     * lhs: 00010100 | 20
      * rhs: 11101111 | -17
      * ans: 00010011 | -128
      * C:1, Z:0, N:0, V:0
      * */
-    test_ind_y_page_cross(AdcTestData {
+    test_ind_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 4,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        true,
+    );
+}
+
+// SBC
+
+// Immediate
+#[test]
+fn sbc_immediate_can_subtract_two_unsigned_numbers() {
+    test_im(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_immediate_can_subtract_positive_and_negative_numbers() {
+    test_im(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Zero Page
+#[test]
+fn sbc_zero_page_can_subtract_two_unsigned_numbers() {
+    test_zp(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_zero_page_can_subtract_positive_and_negative_numbers() {
+    test_zp(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Zero Page X
+#[test]
+fn sbc_zero_page_x_can_subtract_two_unsigned_numbers() {
+    test_zp_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_zero_page_x_can_subtract_positive_and_negative_numbers() {
+    test_zp_x(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Absolute
+#[test]
+fn sbc_absolute_zero_minus_zero_equals_zero() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 0x0,
+            rhs: 0x0,
+            expected_answer: 0x0,
+            expect_c: true,
+            expect_z: true,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_zero_minus_one_equals_negative_one() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 0x0,
+            rhs: 0x1,
+            expected_answer: (-1_i8) as Byte,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_zero_minus_one_with_carry_equals_negative_two() {
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 0x0,
+            rhs: 0x1,
+            expected_answer: (-2_i8) as Byte,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_can_subtract_two_negative_get_signed_overflow() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: (-128_i8) as Byte,
+            rhs: 0x1,
+            expected_answer: (127_i8) as Byte,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: true,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_can_subtract_positive_and_negative_get_signed_overflow() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 127,
+            rhs: (-1_i8) as Byte,
+            expected_answer: 128,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: true,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_can_subtract_zero_and_zero_and_carry_get_negative_one() {
+    test_abs(
+        AdcTestData {
+            carry_before: false,
+            lhs: 0,
+            rhs: 0,
+            expected_answer: (-1_i8) as Byte,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_can_subtract_two_unsigned_numbers() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_can_subtract_two_negative_numbers() {
+    test_abs(
+        AdcTestData {
+            carry_before: true,
+            lhs: (-20_i8) as Byte,
+            rhs: (-17_i8) as Byte,
+            expected_answer: (-3_i8) as Byte,
+            expect_c: false,
+            expect_z: false,
+            expect_n: true,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Absolute X
+#[test]
+fn sbc_absolute_x_can_subtract_two_unsigned_numbers() {
+    test_abs_x(AdcTestData {
         carry_before: true,
         lhs: 20,
-        rhs: (-17_i8) as Byte,
-        expected_answer: 4,
+        rhs: 17,
+        expected_answer: 3,
         expect_c: true,
         expect_z: false,
         expect_n: false,
         expect_v: false,
-    });
+    }, false);
+}
+
+#[test]
+fn sbc_absolute_x_can_subtract_positive_and_negative_numbers() {
+    test_abs_x(AdcTestData {
+        carry_before: false,
+        lhs: 20,
+        rhs: (-17_i8) as Byte,
+        expected_answer: 36,
+        expect_c: false,
+        expect_z: false,
+        expect_n: false,
+        expect_v: false,
+    }, false);
+}
+
+#[test]
+fn sbc_absolute_x_can_subtract_two_unsigned_numbers_when_crossing_page() {
+    test_abs_x_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_x_can_subtract_positive_and_negative_numbers_when_crossing_page() {
+    test_abs_x_page_cross(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Absolute Y
+#[test]
+fn sbc_absolute_y_can_subtract_two_unsigned_numbers() {
+    test_abs_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_y_can_subtract_positive_and_negative_numbers() {
+    test_abs_y(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_y_can_subtract_two_unsigned_numbers_when_crossing_page() {
+    test_abs_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_absolute_y_can_subtract_positive_and_negative_numbers_when_crossing_page() {
+    test_abs_y_page_cross(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Indirect X
+#[test]
+fn sbc_indirect_x_can_subtract_two_unsigned_numbers() {
+    test_ind_x(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_indirect_x_can_subtract_positive_and_negative_numbers() {
+    test_ind_x(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+// Indirect Y
+#[test]
+fn sbc_indirect_y_can_subtract_two_unsigned_numbers() {
+    test_ind_y(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_indirect_y_can_subtract_positive_and_negative_numbers() {
+    test_ind_y(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_indirect_y_can_subtract_two_unsigned_numbers_when_crossing_page() {
+    test_ind_y_page_cross(
+        AdcTestData {
+            carry_before: true,
+            lhs: 20,
+            rhs: 17,
+            expected_answer: 3,
+            expect_c: true,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
+}
+
+#[test]
+fn sbc_indirect_y_can_subtract_positive_and_negative_numbers_when_crossing_page() {
+    test_ind_y_page_cross(
+        AdcTestData {
+            carry_before: false,
+            lhs: 20,
+            rhs: (-17_i8) as Byte,
+            expected_answer: 36,
+            expect_c: false,
+            expect_z: false,
+            expect_n: false,
+            expect_v: false,
+        },
+        false,
+    );
 }

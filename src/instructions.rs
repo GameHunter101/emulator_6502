@@ -134,6 +134,15 @@ pub enum Instruction {
     InsAdcAbsY = 0x79,
     InsAdcIndX = 0x61,
     InsAdcIndY = 0x71,
+    // SBC
+    InsSbcIm = 0xE9,
+    InsSbcZp = 0xE5,
+    InsSbcZpX = 0xF5,
+    InsSbcAbs = 0xED,
+    InsSbcAbsX = 0xFD,
+    InsSbcAbsY = 0xF9,
+    InsSbcIndX = 0xE1,
+    InsSbcIndY = 0xF1,
     // CMP
     InsCmpIm = 0xC9,
     InsCmpZp = 0xC5,
@@ -286,6 +295,15 @@ impl TryFrom<Byte> for Instruction {
             0x79 => Ok(Self::InsAdcAbsY),
             0x61 => Ok(Self::InsAdcIndX),
             0x71 => Ok(Self::InsAdcIndY),
+            // SBC
+            0xE9 => Ok(Self::InsSbcIm),
+            0xE5 => Ok(Self::InsSbcZp),
+            0xF5 => Ok(Self::InsSbcZpX),
+            0xED => Ok(Self::InsSbcAbs),
+            0xFD => Ok(Self::InsSbcAbsX),
+            0xF9 => Ok(Self::InsSbcAbsY),
+            0xE1 => Ok(Self::InsSbcIndX),
+            0xF1 => Ok(Self::InsSbcIndY),
             // CMP
             0xC9 => Ok(Self::InsCmpIm),
             0xC5 => Ok(Self::InsCmpZp),
