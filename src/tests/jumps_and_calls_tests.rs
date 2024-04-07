@@ -26,7 +26,7 @@ fn can_jump_to_subroutine_and_jump_back() {
     memory[0xFF03] = Instruction::InsLdaIm as Byte;
     memory[0xFF04] = 0x42;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(14, &mut memory);
 
@@ -47,7 +47,7 @@ fn jsr_does_not_affect_processor_status() {
     memory[0xFF01] = 0x00;
     memory[0xFF02] = 0x80;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(6, &mut memory);
 
@@ -71,7 +71,7 @@ fn rts_does_not_affect_processor_status() {
     memory[0xFF02] = 0x80;
     memory[0x8000] = Instruction::InsRts as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(12, &mut memory);
 
@@ -92,7 +92,7 @@ fn jmp_absolute_can_jump_to_new_location() {
     memory[0xFF01] = 0x00;
     memory[0xFF02] = 0x80;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(3, &mut memory);
 
@@ -115,7 +115,7 @@ fn jmp_indirect_can_jump_to_new_location() {
     memory[0x8000] = 0x00;
     memory[0x8001] = 0x90;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(5, &mut memory);
 

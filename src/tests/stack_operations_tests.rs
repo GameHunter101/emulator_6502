@@ -28,14 +28,14 @@ fn tsx_can_transfer_stack_pointer() {
 
     memory[0xFF00] = Instruction::InsTsx as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(2, &mut memory);
 
     assert_eq!(cycles, Ok(2));
     assert_eq!(cpu.x_register, 0x01);
-    assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, false);
+    assert!(!cpu.status.zero);
+    assert!(!cpu.status.negative);
 }
 
 #[test]
@@ -50,14 +50,14 @@ fn tsx_can_transfer_zero_stack_pointer() {
 
     memory[0xFF00] = Instruction::InsTsx as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(2, &mut memory);
 
     assert_eq!(cycles, Ok(2));
     assert_eq!(cpu.x_register, 0x00);
-    assert_eq!(cpu.status.zero, true);
-    assert_eq!(cpu.status.negative, false);
+    assert!(cpu.status.zero);
+    assert!(!cpu.status.negative);
 }
 
 #[test]
@@ -72,14 +72,14 @@ fn tsx_can_transfer_negative_stack_pointer() {
 
     memory[0xFF00] = Instruction::InsTsx as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(2, &mut memory);
 
     assert_eq!(cycles, Ok(2));
     assert_eq!(cpu.x_register, 0b10000000);
-    assert_eq!(cpu.status.zero, false);
-    assert_eq!(cpu.status.negative, true);
+    assert!(!cpu.status.zero);
+    assert!(cpu.status.negative);
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn txs_can_transfer_x_register_to_stack_pointer() {
 
     memory[0xFF00] = Instruction::InsTxs as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(2, &mut memory);
 
@@ -109,7 +109,7 @@ fn pha_can_push_a_register_to_stack() {
 
     memory[0xFF00] = Instruction::InsPha as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(3, &mut memory);
 
@@ -130,7 +130,7 @@ fn pla_can_pull_value_from_stack_to_a_register() {
     memory[0x01FF] = 0x42;
     memory[0xFF00] = Instruction::InsPla as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 
@@ -152,14 +152,14 @@ fn pla_can_pull_zero_value_from_stack_to_a_register() {
     memory[0x01FF] = 0x00;
     memory[0xFF00] = Instruction::InsPla as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 
     assert_eq!(cycles, Ok(4));
     assert_eq!(cpu.a_register, 0x00);
-    assert_eq!(cpu.status.negative, false);
-    assert_eq!(cpu.status.zero, true);
+    assert!(!cpu.status.negative);
+    assert!(cpu.status.zero);
     assert_eq!(cpu.stack_pointer, 0xFF);
 }
 
@@ -176,14 +176,14 @@ fn pla_can_pull_negative_value_from_stack_to_a_register() {
     memory[0x01FF] = 0xF0;
     memory[0xFF00] = Instruction::InsPla as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 
     assert_eq!(cycles, Ok(4));
     assert_eq!(cpu.a_register, 0xF0);
-    assert_eq!(cpu.status.negative, true);
-    assert_eq!(cpu.status.zero, false);
+    assert!(cpu.status.negative);
+    assert!(!cpu.status.zero);
     assert_eq!(cpu.stack_pointer, 0xFF);
 }
 
@@ -196,7 +196,7 @@ fn php_can_push_processor_status_to_stack() {
 
     memory[0xFF00] = Instruction::InsPhp as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(3, &mut memory);
 
@@ -217,7 +217,7 @@ fn plp_can_pull_processor_status_from_stack() {
     memory[0x01FF] = 0x42;
     memory[0xFF00] = Instruction::InsPlp as Byte;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 

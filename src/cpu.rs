@@ -154,6 +154,38 @@ impl CPU {
         self.status.carry = !negative;
     }
 
+    fn shift_left(&mut self, cycles: &mut i32, lhs: Byte) -> Byte {
+        let value = lhs << 1;
+        self.set_z_n_flags(value);
+        self.status.carry = (lhs & ProcessorFlags::NEGATIVE_FLAG_BIT) != 0;
+        *cycles -= 1;
+        value
+    }
+
+    fn shift_right(&mut self, cycles: &mut i32, lhs: Byte) -> Byte {
+        let value = lhs >> 1;
+        self.set_z_n_flags(value);
+        self.status.carry = (lhs & 1) != 0;
+        *cycles -= 1;
+        value
+    }
+
+    fn roll_left(&mut self, cycles: &mut i32, lhs: Byte) -> Byte {
+        let value = (lhs << 1) + self.status.carry as Byte;
+        self.set_z_n_flags(value);
+        self.status.carry = (lhs & ProcessorFlags::NEGATIVE_FLAG_BIT) != 0;
+        *cycles -= 1;
+        value
+    }
+
+    fn roll_right(&mut self, cycles: &mut i32, lhs: Byte) -> Byte {
+        let value = (lhs >> 1) + ((self.status.carry as Byte) << 7);
+        self.set_z_n_flags(value);
+        self.status.carry = (lhs & 1) != 0;
+        *cycles -= 1;
+        value
+    }
+
     pub fn execute(&mut self, cycles: i32, memory: &mut Memory) -> Result<i32, InstructionsError> {
         let cycles_requested = cycles;
         let mut cycles = cycles;
@@ -1036,7 +1068,8 @@ impl CPU {
                 }
                 Instruction::InsCmpIndY => {
                     let zero_page_address = self.fetch_byte(&mut cycles, memory);
-                    let indirect_address = self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
+                    let indirect_address =
+                        self.read_word_from_zero_page(&mut cycles, memory, zero_page_address);
                     let indirect_address_y = indirect_address + self.y_register as Word;
                     if !CPU::check_same_page(indirect_address, indirect_address_y) {
                         cycles -= 1;
@@ -1073,6 +1106,138 @@ impl CPU {
                     let absolute_address = self.fetch_word(&mut cycles, memory);
                     let rhs = self.read_byte(&mut cycles, memory, absolute_address);
                     self.compare_register(self.y_register, rhs);
+                }
+                // ASL
+                Instruction::InsAslA => {
+                    self.a_register = self.shift_left(&mut cycles, self.a_register);
+                }
+                Instruction::InsAslZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) as Word;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address);
+                    let value = self.shift_left(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address, &mut cycles, memory);
+                }
+                Instruction::InsAslZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x =
+                        zero_page_address.wrapping_add(self.x_register) as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address_x);
+                    let value = self.shift_left(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address_x, &mut cycles, memory);
+                }
+                Instruction::InsAslAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    let value = self.shift_left(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address, &mut cycles, memory);
+                }
+                Instruction::InsAslAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    let value = self.shift_left(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address_x, &mut cycles, memory);
+                }
+                // LSR
+                Instruction::InsLsrA => {
+                    self.a_register = self.shift_right(&mut cycles, self.a_register);
+                }
+                Instruction::InsLsrZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) as Word;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address);
+                    let value = self.shift_right(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address, &mut cycles, memory);
+                }
+                Instruction::InsLsrZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x =
+                        zero_page_address.wrapping_add(self.x_register) as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address_x);
+                    let value = self.shift_right(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address_x, &mut cycles, memory);
+                }
+                Instruction::InsLsrAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    let value = self.shift_right(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address, &mut cycles, memory);
+                }
+                Instruction::InsLsrAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    let value = self.shift_right(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address_x, &mut cycles, memory);
+                }
+                // ROL
+                Instruction::InsRolA => {
+                    self.a_register = self.roll_left(&mut cycles, self.a_register);
+                }
+                Instruction::InsRolZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) as Word;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address);
+                    let value = self.roll_left(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address, &mut cycles, memory);
+                }
+                Instruction::InsRolZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x =
+                        zero_page_address.wrapping_add(self.x_register) as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address_x);
+                    let value = self.roll_left(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address_x, &mut cycles, memory);
+                }
+                Instruction::InsRolAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    let value = self.roll_left(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address, &mut cycles, memory);
+                }
+                Instruction::InsRolAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    let value = self.roll_left(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address_x, &mut cycles, memory);
+                }
+                // ROR
+                Instruction::InsRorA => {
+                    self.a_register = self.roll_right(&mut cycles, self.a_register);
+                }
+                Instruction::InsRorZp => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory) as Word;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address);
+                    let value = self.roll_right(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address, &mut cycles, memory);
+                }
+                Instruction::InsRorZpX => {
+                    let zero_page_address = self.fetch_byte(&mut cycles, memory);
+                    let zero_page_address_x =
+                        zero_page_address.wrapping_add(self.x_register) as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, zero_page_address_x);
+                    let value = self.roll_right(&mut cycles, lhs);
+                    self.write_byte(value, zero_page_address_x, &mut cycles, memory);
+                }
+                Instruction::InsRorAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address);
+                    let value = self.roll_right(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address, &mut cycles, memory);
+                }
+                Instruction::InsRorAbsX => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let absolute_address_x = absolute_address + self.x_register as Word;
+                    cycles -= 1;
+                    let lhs = self.read_byte(&mut cycles, memory, absolute_address_x);
+                    let value = self.roll_right(&mut cycles, lhs);
+                    self.write_byte(value, absolute_address_x, &mut cycles, memory);
                 }
                 _ => {
                     break;

@@ -27,7 +27,7 @@ fn test_store_zero_page(opcode: Instruction, register_to_test: RegisterToTest) {
     memory[0xFFFC] = opcode as Byte;
     memory[0xFFFD] = 0x80;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(3, &mut memory);
 
@@ -55,7 +55,7 @@ fn test_store_zero_page_plus_register(
     memory[0xFFFC] = opcode as Byte;
     memory[0xFFFD] = 0x80;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 
@@ -84,7 +84,7 @@ fn test_store_absolute(opcode: Instruction, register_to_test: RegisterToTest) {
     memory[0xFFFD] = 0x80;
     memory[0xFFFE] = 0x44;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(4, &mut memory);
 
@@ -127,7 +127,7 @@ fn sta_absolute_x_can_store_value() {
     memory[0xFFFD] = 0x80;
     memory[0xFFFE] = 0x44;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(5, &mut memory);
 
@@ -150,7 +150,7 @@ fn sta_absolute_y_can_store_value() {
     memory[0xFFFD] = 0x80;
     memory[0xFFFE] = 0x44;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(5, &mut memory);
 
@@ -174,7 +174,7 @@ fn sta_indirect_x_can_store_value() {
     memory[0x84] = 0x80;
     memory[0x85] = 0x44;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(6, &mut memory);
 
@@ -198,7 +198,7 @@ fn sta_indirect_y_can_store_value() {
     memory[0x80] = 0x80;
     memory[0x81] = 0x44;
 
-    let cpu_copy = cpu.clone();
+    let cpu_copy = cpu;
 
     let cycles = cpu.execute(6, &mut memory);
 

@@ -160,6 +160,30 @@ pub enum Instruction {
     InsCpyIm = 0xC0,
     InsCpyZp = 0xC4,
     InsCpyAbs = 0xCC,
+    // ASL
+    InsAslA = 0x0A,
+    InsAslZp = 0x06,
+    InsAslZpX = 0x16,
+    InsAslAbs = 0x0E,
+    InsAslAbsX = 0x1E,
+    // LSR
+    InsLsrA = 0x4A,
+    InsLsrZp = 0x46,
+    InsLsrZpX = 0x56,
+    InsLsrAbs = 0x4E,
+    InsLsrAbsX = 0x5E,
+    // ROL
+    InsRolA = 0x2A,
+    InsRolZp = 0x26,
+    InsRolZpX = 0x36,
+    InsRolAbs = 0x2E,
+    InsRolAbsX = 0x3E,
+    // ROR
+    InsRorA = 0x6A,
+    InsRorZp = 0x66,
+    InsRorZpX = 0x76,
+    InsRorAbs = 0x6E,
+    InsRorAbsX = 0x7E,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -321,6 +345,30 @@ impl TryFrom<Byte> for Instruction {
             0xC0 => Ok(Self::InsCpyIm),
             0xC4 => Ok(Self::InsCpyZp),
             0xCC => Ok(Self::InsCpyAbs),
+            // ASL
+            0x0A => Ok(Self::InsAslA),
+            0x06 => Ok(Self::InsAslZp),
+            0x16 => Ok(Self::InsAslZpX),
+            0x0E => Ok(Self::InsAslAbs),
+            0x1E => Ok(Self::InsAslAbsX),
+            // LSR
+            0x4A => Ok(Self::InsLsrA),
+            0x46 => Ok(Self::InsLsrZp),
+            0x56 => Ok(Self::InsLsrZpX),
+            0x4E => Ok(Self::InsLsrAbs),
+            0x5E => Ok(Self::InsLsrAbsX),
+            // ROL
+            0x2A => Ok(Self::InsRolA),
+            0x26 => Ok(Self::InsRolZp),
+            0x36 => Ok(Self::InsRolZpX),
+            0x2E => Ok(Self::InsRolAbs),
+            0x3E => Ok(Self::InsRolAbsX),
+            // ROR
+            0x6A => Ok(Self::InsRorA),
+            0x66 => Ok(Self::InsRorZp),
+            0x76 => Ok(Self::InsRorZpX),
+            0x6E => Ok(Self::InsRorAbs),
+            0x7E => Ok(Self::InsRorAbsX),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }
