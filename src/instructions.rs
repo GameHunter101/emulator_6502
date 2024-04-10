@@ -123,8 +123,6 @@ pub enum Instruction {
     InsCli = 0x58,
     InsSei = 0x78,
     InsClv = 0xB8,
-    // Misc
-    InsNop = 0xEA,
     // ADC
     InsAdcIm = 0x69,
     InsAdcZp = 0x65,
@@ -184,6 +182,10 @@ pub enum Instruction {
     InsRorZpX = 0x76,
     InsRorAbs = 0x6E,
     InsRorAbsX = 0x7E,
+    // Misc
+    InsNop = 0xEA,
+    InsBrk = 0x00,
+    InsRti = 0x40,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -308,8 +310,6 @@ impl TryFrom<Byte> for Instruction {
             0x58 => Ok(Self::InsCli),
             0x78 => Ok(Self::InsSei),
             0xB8 => Ok(Self::InsClv),
-            // Misc
-            0xEA => Ok(Self::InsNop),
             // ADC
             0x69 => Ok(Self::InsAdcIm),
             0x65 => Ok(Self::InsAdcZp),
@@ -369,6 +369,10 @@ impl TryFrom<Byte> for Instruction {
             0x76 => Ok(Self::InsRorZpX),
             0x6E => Ok(Self::InsRorAbs),
             0x7E => Ok(Self::InsRorAbsX),
+            // Misc
+            0xEA => Ok(Self::InsNop),
+            0x00 => Ok(Self::InsBrk),
+            0x40 => Ok(Self::InsRti),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

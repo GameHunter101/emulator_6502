@@ -342,8 +342,9 @@ impl CPU {
                 // Jumps
                 Instruction::InsJsr => {
                     let subroutine_address = self.fetch_word(&mut cycles, memory);
-                    self.push_program_counter_to_stack(&mut cycles, memory);
+                    self.push_program_counter_minus_one_to_stack(&mut cycles, memory);
                     self.program_counter = subroutine_address;
+                    cycles -= 1;
                 }
                 Instruction::InsRts => {
                     let return_address = self.pop_word_from_stack(&mut cycles, memory);
@@ -487,12 +488,14 @@ impl CPU {
                 Instruction::InsPla => {
                     self.a_register = self.pop_byte_from_stack(&mut cycles, memory);
                     self.set_z_n_flags(self.a_register);
+                    cycles -= 1;
                 }
                 Instruction::InsPhp => {
                     self.push_byte_to_stack(self.status.into(), &mut cycles, memory);
                 }
                 Instruction::InsPlp => {
                     self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
+                    cycles -= 1;
                 }
                 // AND
                 Instruction::InsAndIm => {
@@ -893,10 +896,6 @@ impl CPU {
                     self.status.overflow = false;
                     cycles -= 1;
                 }
-                // Misc
-                Instruction::InsNop => {
-                    cycles -= 1;
-                }
                 // ADC
                 Instruction::InsAdcIm => {
                     let rhs = self.fetch_byte(&mut cycles, memory);
@@ -1239,6 +1238,23 @@ impl CPU {
                     let value = self.roll_right(&mut cycles, lhs);
                     self.write_byte(value, absolute_address_x, &mut cycles, memory);
                 }
+                // NOP
+                Instruction::InsNop => {
+                    cycles -= 1;
+                }
+                // BRK
+                Instruction::InsBrk => {
+                    let interrupt_vector = 0xFFFE;
+                    self.push_program_counter_to_stack(&mut cycles, memory);
+                    self.push_byte_to_stack(self.status.into_u8(), &mut cycles, memory);
+                    self.program_counter =
+                        self.read_word_absolute(&mut cycles, memory, interrupt_vector);
+                    self.status.break_command = true;
+                }
+                Instruction::InsRti => {
+                    self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
+                    self.program_counter = self.pop_word_from_stack(&mut cycles, memory);
+                }
                 _ => {
                     break;
                 }
@@ -1322,15 +1338,12 @@ impl CPU {
         0x100 | self.stack_pointer as Word
     }
 
+    pub fn push_program_counter_minus_one_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
+        self.push_word_to_stack(self.program_counter - 1, cycles, memory);
+    }
+
     pub fn push_program_counter_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
-        self.write_word(
-            self.program_counter - 1,
-            self.stack_pointer_to_address() - 1,
-            cycles,
-            memory,
-        );
-        self.stack_pointer -= 2;
-        *cycles -= 1;
+        self.push_word_to_stack(self.program_counter, cycles, memory);
     }
 
     pub fn pop_word_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Word {
@@ -1351,8 +1364,25 @@ impl CPU {
     pub fn pop_byte_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Byte {
         self.stack_pointer += 1;
         let data = memory[self.stack_pointer_to_address()];
-        *cycles -= 3;
+        *cycles -= 2;
         data
+    }
+
+    pub fn push_word_to_stack(&mut self, data: Word, cycles: &mut i32, memory: &mut Memory) {
+        self.write_byte(
+            data.overflowing_shr(8).0 as Byte,
+            self.stack_pointer_to_address(),
+            cycles,
+            memory,
+        );
+        self.stack_pointer -= 1;
+        self.write_byte(
+            data as Byte,
+            self.stack_pointer_to_address(),
+            cycles,
+            memory,
+        );
+        self.stack_pointer -= 1;
     }
 
     pub fn load_program(&self, program: &[Byte], num_bytes: u16, memory: &mut Memory) -> Word {

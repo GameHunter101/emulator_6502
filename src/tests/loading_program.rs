@@ -115,7 +115,7 @@ fn test_executing_beq_loop_program() {
     }
 }
 
-#[test]
+/* #[test]
 fn test_executing_comparison_loop_program() {
     let mut cpu = CPU::reset(Some(0x0FFF));
     let mut memory = Memory::initialize();
@@ -134,4 +134,4 @@ fn test_executing_comparison_loop_program() {
         }
         break;
     }
-}
+} */

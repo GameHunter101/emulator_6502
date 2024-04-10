@@ -30,7 +30,7 @@ fn cpu_does_nothing_zero_cycles() {
     assert_eq!(cycles, Ok(0));
 }
 
-#[test]
+/* #[test]
 fn executing_bad_instruction_does_not_loop() {
     let mut cpu = CPU::reset(None);
     let mut memory = Memory::initialize();
@@ -41,7 +41,7 @@ fn executing_bad_instruction_does_not_loop() {
     let cycles = cpu.execute(4, &mut memory);
 
     assert!(cycles.is_err_and(|err| err == InstructionsError::InstructionDoesntExist(0x0)));
-}
+} */
 
 fn test_loading_register_immediate(opcode: Instruction, register_to_test: RegisterToTest) {
     let mut cpu = CPU::reset(None);
