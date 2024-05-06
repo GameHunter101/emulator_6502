@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::instructions::{Instruction, InstructionsError};
+use crate::{instructions::{Instruction, InstructionsError}, GraphicsAdapter};
 use std::{fmt::Display, ops::BitOrAssign};
 
 use crate::memory::Memory;
@@ -86,7 +86,7 @@ impl From<ProcessorFlags> for u8 {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct CPU {
+pub struct CPU<'a> {
     // Addresses
     pub program_counter: Word,
     pub stack_pointer: Byte,
@@ -98,10 +98,13 @@ pub struct CPU {
 
     // Status flags
     pub status: ProcessorFlags,
+    
+    // Graphics adapter reference
+    pub graphics_adapter: Option<&'a GraphicsAdapter>
 }
 
-impl CPU {
-    pub fn reset(reset_vector: Option<Word>) -> CPU {
+impl<'a> CPU<'a> {
+    pub fn reset(reset_vector: Option<Word>) -> CPU<'a> {
         let program_counter = reset_vector.unwrap_or(0xFFFC);
         CPU {
             program_counter,
@@ -110,6 +113,7 @@ impl CPU {
             x_register: 0,
             y_register: 0,
             status: ProcessorFlags::default(),
+            graphics_adapter: None,
         }
     }
 
@@ -1400,7 +1404,7 @@ impl CPU {
     }
 }
 
-impl Display for CPU {
+impl<'a> Display for CPU<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
