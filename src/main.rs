@@ -1,10 +1,12 @@
 #![allow(unused)]
 use cpu::{Byte, Word, CPU};
+use graphics_adapter::GraphicsAdapter;
 use instructions::{Instruction, InstructionsError};
 use memory::Memory;
 use sdl2::{event::Event, pixels::Color, rect::Rect, render::Canvas, sys::Window};
 
 pub mod cpu;
+pub mod graphics_adapter;
 pub mod instructions;
 pub mod memory;
 
@@ -39,6 +41,16 @@ fn main() {
 
     let mut canvas = window.into_canvas().present_vsync().build().unwrap();
 
+    let graphics = GraphicsAdapter::new(Color {
+        r: 100,
+        g: 0,
+        b: 0,
+        a: 255,
+    });
+
+    let pixel_width = canvas.window().size().0 / 16;
+    let pixel_height = canvas.window().size().1 / 16;
+
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
@@ -55,20 +67,18 @@ fn main() {
             }
         }
 
-        canvas.set_draw_color(Color::RGB(255, 0, 0));
-        canvas.fill_rect(Rect::new(10, 10, 200, 200));
+        for (row_index, row) in graphics.get_pixels().iter().enumerate() {
+            for (col_index, pixel) in row.iter().enumerate() {
+                canvas.set_draw_color(*pixel);
+                canvas.fill_rect(Rect::new(
+                    (pixel_width * col_index as u32) as i32,
+                    (pixel_height * row_index as u32) as i32,
+                    pixel_width,
+                    pixel_height,
+                ));
+            }
+        }
 
         canvas.present();
-    }
-}
-
-#[derive(Debug)]
-pub struct GraphicsAdapter {
-    pixels: [[Color; 40]; 40],
-}
-
-impl GraphicsAdapter {
-    pub fn get_data(&mut self, data: Word) {
-
     }
 }

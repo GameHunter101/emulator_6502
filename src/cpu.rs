@@ -1,5 +1,8 @@
 #![allow(unused)]
-use crate::{instructions::{Instruction, InstructionsError}, GraphicsAdapter};
+use crate::{
+    graphics_adapter::GraphicsAdapter,
+    instructions::{Instruction, InstructionsError},
+};
 use std::{fmt::Display, ops::BitOrAssign};
 
 use crate::memory::Memory;
@@ -98,9 +101,9 @@ pub struct CPU<'a> {
 
     // Status flags
     pub status: ProcessorFlags,
-    
+
     // Graphics adapter reference
-    pub graphics_adapter: Option<&'a GraphicsAdapter>
+    pub graphics_adapter: Option<&'a GraphicsAdapter>,
 }
 
 impl<'a> CPU<'a> {
@@ -1342,7 +1345,11 @@ impl<'a> CPU<'a> {
         0x100 | self.stack_pointer as Word
     }
 
-    pub fn push_program_counter_minus_one_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
+    pub fn push_program_counter_minus_one_to_stack(
+        &mut self,
+        cycles: &mut i32,
+        memory: &mut Memory,
+    ) {
         self.push_word_to_stack(self.program_counter - 1, cycles, memory);
     }
 
