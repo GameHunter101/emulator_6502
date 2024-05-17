@@ -18,6 +18,7 @@ pub struct ProcessorFlags {
     pub interupt_disable: bool,
     pub decimal_mode: bool,
     pub break_command: bool,
+    pub unused: bool,
     pub overflow: bool,
     pub negative: bool,
 }
@@ -32,6 +33,7 @@ impl ProcessorFlags {
         value |= (self.interupt_disable as u8) << 2;
         value |= (self.decimal_mode as u8) << 3;
         value |= (self.break_command as u8) << 4;
+        value |= (self.unused as u8) << 5;
         value |= (self.overflow as u8) << 6;
         value |= (self.negative as u8) << 7;
 
@@ -47,6 +49,7 @@ impl From<u8> for ProcessorFlags {
             interupt_disable: value & 0b00000100 != 0,
             decimal_mode: value & 0b00001000 != 0,
             break_command: value & 0b00010000 != 0,
+            unused: value & 0b00100000 != 0,
             overflow: value & Self::OVERFLOW_FLAG_BIT != 0,
             negative: value & Self::NEGATIVE_FLAG_BIT != 0,
         }
@@ -77,6 +80,9 @@ impl From<ProcessorFlags> for u8 {
         }
         if val.break_command {
             result ^= 0b00010000;
+        }
+        if val.unused {
+            result ^= 0b00100000;
         }
         if val.overflow {
             result ^= ProcessorFlags::OVERFLOW_FLAG_BIT;
@@ -498,7 +504,10 @@ impl<'a> CPU<'a> {
                     cycles -= 1;
                 }
                 Instruction::InsPhp => {
-                    self.push_byte_to_stack(self.status.into(), &mut cycles, memory);
+                    self.status.break_command = true;
+                    self.status.unused = true;
+                    self.push_byte_to_stack(self.status.into_u8(), &mut cycles, memory);
+                    self.status.interupt_disable = true;
                 }
                 Instruction::InsPlp => {
                     self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
@@ -1251,9 +1260,12 @@ impl<'a> CPU<'a> {
                 }
                 // BRK
                 Instruction::InsBrk => {
+                    self.status.break_command = true;
+                    self.status.unused = true;
                     let interrupt_vector = 0xFFFE;
                     self.push_program_counter_to_stack(&mut cycles, memory);
                     self.push_byte_to_stack(self.status.into_u8(), &mut cycles, memory);
+                    self.status.interupt_disable = true;
                     self.program_counter =
                         self.read_word_absolute(&mut cycles, memory, interrupt_vector);
                     self.status.break_command = true;
@@ -1415,7 +1427,7 @@ impl<'a> Display for CPU<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "A: 0x{:0x}, X: 0x{:0x}, Y: 0x{:0x}\nPC: 0x{:0x}, SP: 0x{:0x}\nPS: 0b{:0b}",
+            "A: 0x{:04x}, X: 0x{:04x}, Y: 0x{:04x}\nPC: 0x{:04x}, SP: 0x{:02x}\nPS: 0b{:08b}",
             self.a_register,
             self.x_register,
             self.y_register,

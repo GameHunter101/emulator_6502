@@ -99,7 +99,9 @@ fn brk_will_push_pc_and_ps_onto_stack() {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
-    let cpu_copy = cpu;
+    let mut cpu_copy = cpu;
+    cpu_copy.status.unused = true;
+    cpu_copy.status.break_command = true;
     let old_sp = cpu_copy.stack_pointer as Word;
 
     memory[0xFF00] = Instruction::InsBrk as Byte;
@@ -110,6 +112,7 @@ fn brk_will_push_pc_and_ps_onto_stack() {
     assert_eq!(memory[(0x100 | old_sp)], 0xFF);
     assert_eq!(memory[(0x100 | old_sp) - 1], 0x01);
     assert_eq!(memory[(0x100 | old_sp) - 2], cpu_copy.status.into_u8());
+    assert!(cpu.status.interupt_disable);
 }
 
 // RTI
@@ -136,5 +139,4 @@ fn rti_can_can_return_from_interrupt_leaving_cup_in_original_state() {
     assert_eq!(cpu.stack_pointer, cpu_copy.stack_pointer);
     assert_eq!(cpu.status, cpu_copy.status);
     assert_eq!(cpu.program_counter, 0xFF01);
-    
 }

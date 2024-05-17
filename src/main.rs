@@ -28,7 +28,7 @@ mod tests {
     pub mod transfer_register_tests;
 }
 
-fn main() {
+/* fn main() {
     let context = sdl2::init().unwrap();
     let mut event_pump = context.event_pump().unwrap();
     let video = context.video().unwrap();
@@ -81,4 +81,29 @@ fn main() {
 
         canvas.present();
     }
+}*/
+
+fn main() {
+    let mut cpu = CPU::reset(None);
+    let mut memory = Memory::initialize();
+
+    cpu.program_counter = 0x400;
+
+    let slice = &mut memory[0x000A..(0x000A + 65526)];
+    let path = std::path::Path::new(&std::env::current_dir().unwrap())
+        .join("assembly\\6502_functional_test.bin");
+    dbg!(&path);
+    let file = std::fs::read(path).unwrap();
+    slice.copy_from_slice(&file);
+
+    loop {
+        cpu.execute(1, &mut memory).unwrap();
+        // println!("0x{:4x}", cpu.program_counter);
+        println!("{}", cpu);
+        println!("Val at stack: {:04x}\n\n", &memory[cpu.stack_pointer_to_address()]);
+        if cpu.program_counter == 0x37e1 {
+            break;
+        }
+    }
 }
+

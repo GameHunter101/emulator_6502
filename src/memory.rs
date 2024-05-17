@@ -41,3 +41,9 @@ impl Index<Range<usize>> for Memory {
         &self.data[index]
     }
 }
+
+impl IndexMut<Range<usize>> for Memory {
+    fn index_mut(&mut self, index: Range<usize>) -> &mut Self::Output {
+        &mut self.data[index]
+    }
+}

@@ -42,7 +42,7 @@ static INC_MEMORY_PROGRAM: [Byte; 14] = [
 * */
 static BEQ_LOOP_PROGRAM: [Byte; 6] = [0x00, 0x10, 0xA9, 0x00, 0xF0, 0xFC];
 
-/* 
+/*
 * * =$1000
 *
 * lda #0
@@ -135,3 +135,25 @@ fn test_executing_comparison_loop_program() {
         break;
     }
 } */
+
+// #[test]
+fn test_6502_test_program() {
+    let mut cpu = CPU::reset(Some(0x0FFF));
+    let mut memory = Memory::initialize();
+
+    let start_address = cpu.load_program(&BEQ_LOOP_PROGRAM, 6, &mut memory);
+    cpu.program_counter = start_address;
+
+    let slice = &mut memory[0x000A..(0x000A + 65526)];
+    let path = std::path::Path::new(&std::env::current_dir().unwrap()).join("assembly/6502_functional_test.bin");
+    let file = std::fs::read(path).unwrap();
+    slice.copy_from_slice(&file);
+
+    loop {
+        cpu.execute(1, &mut memory).unwrap();
+        // if cpu.program_counter == 0x63a {
+            println!("Val at stack: {}", &memory[cpu.stack_pointer_to_address()]);
+        // }
+        // println!("{cpu}");
+    }
+}

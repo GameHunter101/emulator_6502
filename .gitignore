@@ -3,3 +3,5 @@
 /.vscode
 assembly/TMPx.exe
 SDL2.dll
+assembly/*.bin
+assembly/*.lst

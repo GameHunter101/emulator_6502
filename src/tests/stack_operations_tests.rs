@@ -188,20 +188,47 @@ fn pla_can_pull_negative_value_from_stack_to_a_register() {
 }
 
 #[test]
-fn php_can_push_processor_status_to_stack() {
+fn php_can_push_zero_to_stack() {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
-    cpu.status = 0xCC.into();
+    cpu.status = 0x0.into();
 
     memory[0xFF00] = Instruction::InsPhp as Byte;
 
-    let cpu_copy = cpu;
+    let mut cpu_copy = cpu;
+
+    cpu_copy.status.unused = true;
+    cpu_copy.status.break_command = true;
+    cpu_copy.status.interupt_disable = true;
 
     let cycles = cpu.execute(3, &mut memory);
 
     assert_eq!(cycles, Ok(3));
-    assert_eq!(memory[cpu.stack_pointer_to_address() + 1], 0xCC);
+    assert_eq!(memory[cpu.stack_pointer_to_address() + 1], 0b00110000);
+    assert_eq!(cpu.status, cpu_copy.status);
+    assert_eq!(cpu.stack_pointer, 0xFE);
+}
+
+#[test]
+fn php_can_push_processor_status_to_stack() {
+    let mut cpu = CPU::reset(Some(0xFF00));
+    let mut memory = Memory::initialize();
+
+    cpu.status = 0xFF.into();
+
+
+    memory[0xFF00] = Instruction::InsPhp as Byte;
+
+    let mut cpu_copy = cpu;
+
+    cpu_copy.status.unused = true;
+    cpu_copy.status.break_command = true;
+
+    let cycles = cpu.execute(3, &mut memory);
+
+    assert_eq!(cycles, Ok(3));
+    assert_eq!(memory[cpu.stack_pointer_to_address() + 1], 0xFF);
     assert_eq!(cpu.status, cpu_copy.status);
     assert_eq!(cpu.stack_pointer, 0xFE);
 }
