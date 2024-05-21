@@ -3,7 +3,7 @@ use cpu::{Byte, Word, CPU};
 use graphics_adapter::GraphicsAdapter;
 use instructions::{Instruction, InstructionsError};
 use memory::Memory;
-use sdl2::{event::Event, pixels::Color, rect::Rect, render::Canvas, sys::Window};
+use sdl2::{event::{Event, WindowEvent}, pixels::Color, rect::Rect, render::Canvas, sys::Window};
 
 pub mod cpu;
 pub mod graphics_adapter;
@@ -28,7 +28,7 @@ mod tests {
     pub mod transfer_register_tests;
 }
 
-/* fn main() {
+fn main() {
     let context = sdl2::init().unwrap();
     let mut event_pump = context.event_pump().unwrap();
     let video = context.video().unwrap();
@@ -48,10 +48,31 @@ mod tests {
         a: 255,
     });
 
-    let pixel_width = canvas.window().size().0 / 16;
-    let pixel_height = canvas.window().size().1 / 16;
+    let mut cpu = CPU::new_graphics(graphics, Some(0xFF00));
+    let mut memory = Memory::initialize();
 
+    let slice = &mut memory[0xFF00..0xFF0C];
+    let path =
+        std::path::Path::new(&std::env::current_dir().unwrap()).join("assembly\\test_code.prg");
+    let file = std::fs::read(path).unwrap();
+    slice.copy_from_slice(&file);
+
+    let mut pixel_width = canvas.window().size().0 / 16;
+    let mut pixel_height = canvas.window().size().1 / 16;
+
+    let mut last_pixels = *cpu.get_graphics().unwrap().get_pixels();
     'running: loop {
+        /* println!("{}", cpu);
+        println!(
+            "Val at stack: {:04x}\n\n",
+            &memory[cpu.stack_pointer_to_address()]
+        );
+        println!(
+            "Val at stack + 1: {:04x}\n\n",
+            &memory[cpu.stack_pointer_to_address() + 1]
+        ); */
+        cpu.execute(1, &mut memory);
+
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => {
@@ -63,9 +84,15 @@ mod tests {
                 } => {
                     println!("Key pressed: {keycode}");
                 }
+                Event::Window { win_event: WindowEvent::Resized(new_width, new_height), .. } => {
+                    pixel_width = new_width as u32 / 16;
+                    pixel_height = new_height as u32 / 16;
+                }
                 _ => {}
             }
         }
+
+        let graphics = cpu.get_graphics().unwrap();
 
         for (row_index, row) in graphics.get_pixels().iter().enumerate() {
             for (col_index, pixel) in row.iter().enumerate() {
@@ -80,10 +107,12 @@ mod tests {
         }
 
         canvas.present();
-    }
-}*/
 
-fn main() {
+        last_pixels = *graphics.get_pixels();
+    }
+}
+
+/* fn main() {
     let mut cpu = CPU::reset(None);
     let mut memory = Memory::initialize();
 
@@ -117,5 +146,4 @@ fn main() {
             break;
         } */
     }
-}
-
+} */

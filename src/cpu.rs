@@ -95,7 +95,7 @@ impl From<ProcessorFlags> for u8 {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct CPU<'a> {
+pub struct CPU {
     // Addresses
     pub program_counter: Word,
     pub stack_pointer: Byte,
@@ -109,11 +109,23 @@ pub struct CPU<'a> {
     pub status: ProcessorFlags,
 
     // Graphics adapter reference
-    pub graphics_adapter: Option<&'a GraphicsAdapter>,
+    pub graphics_adapter: Option<GraphicsAdapter>,
 }
 
-impl<'a> CPU<'a> {
-    pub fn reset(reset_vector: Option<Word>) -> CPU<'a> {
+impl CPU {
+    pub fn new_graphics(graphics_adapter: GraphicsAdapter, reset_vector: Option<Word>) -> CPU {
+        let program_counter = reset_vector.unwrap_or(0xFFFC);
+        CPU {
+            program_counter,
+            stack_pointer: 0xFF,
+            a_register: 0,
+            x_register: 0,
+            y_register: 0,
+            status: ProcessorFlags::default(),
+            graphics_adapter: Some(graphics_adapter),
+        }
+    }
+    pub fn reset(reset_vector: Option<Word>) -> CPU {
         let program_counter = reset_vector.unwrap_or(0xFFFC);
         CPU {
             program_counter,
@@ -1257,11 +1269,10 @@ impl<'a> CPU<'a> {
                     let value = self.roll_right(&mut cycles, lhs);
                     self.write_byte(value, absolute_address_x, &mut cycles, memory);
                 }
-                // NOP
+                // Misc
                 Instruction::InsNop => {
                     cycles -= 1;
                 }
-                // BRK
                 Instruction::InsBrk => {
                     self.status.break_command = true;
                     self.status.unused = true;
@@ -1278,6 +1289,15 @@ impl<'a> CPU<'a> {
                     self.program_counter = self.pop_word_from_stack(&mut cycles, memory);
                     self.status.break_command = false;
                     self.status.unused = false;
+                }
+                // Custom
+                Instruction::InsDbg => {
+                    let data = self.fetch_word(&mut cycles, memory);
+                    if let Some(graphics) = self.graphics_adapter.as_mut() {
+                        graphics.get_data(data);
+                        // println!("{:?}", graphics.get_pixels()[0][0]);
+                        cycles -= 1;
+                    }
                 }
                 _ => {
                     break;
@@ -1374,7 +1394,11 @@ impl<'a> CPU<'a> {
         self.push_word_to_stack(self.program_counter, cycles, memory);
     }
 
-    pub fn push_program_counter_plus_one_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
+    pub fn push_program_counter_plus_one_to_stack(
+        &mut self,
+        cycles: &mut i32,
+        memory: &mut Memory,
+    ) {
         self.push_word_to_stack(self.program_counter + 1, cycles, memory);
     }
 
@@ -1432,9 +1456,13 @@ impl<'a> CPU<'a> {
         }
         load_address
     }
+
+    pub fn get_graphics(&self) -> Option<&GraphicsAdapter> {
+        self.graphics_adapter.as_ref()
+    }
 }
 
-impl<'a> Display for CPU<'a> {
+impl Display for CPU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
