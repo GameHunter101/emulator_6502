@@ -110,7 +110,7 @@ fn brk_will_push_pc_and_ps_onto_stack() {
 
     assert_eq!(cycles, Ok(7));
     assert_eq!(memory[(0x100 | old_sp)], 0xFF);
-    assert_eq!(memory[(0x100 | old_sp) - 1], 0x01);
+    assert_eq!(memory[(0x100 | old_sp) - 1], 0x02);
     assert_eq!(memory[(0x100 | old_sp) - 2], cpu_copy.status.into_u8());
     assert!(cpu.status.interupt_disable);
 }
@@ -118,7 +118,7 @@ fn brk_will_push_pc_and_ps_onto_stack() {
 // RTI
 
 #[test]
-fn rti_can_can_return_from_interrupt_leaving_cup_in_original_state() {
+fn rti_can_can_return_from_interrupt_leaving_cpu_in_original_state() {
     let mut cpu = CPU::reset(Some(0xFF00));
     let mut memory = Memory::initialize();
 
@@ -138,5 +138,5 @@ fn rti_can_can_return_from_interrupt_leaving_cup_in_original_state() {
     assert_eq!(rti_cycles, Ok(6));
     assert_eq!(cpu.stack_pointer, cpu_copy.stack_pointer);
     assert_eq!(cpu.status, cpu_copy.status);
-    assert_eq!(cpu.program_counter, 0xFF01);
+    assert_eq!(cpu.program_counter, 0xFF02);
 }

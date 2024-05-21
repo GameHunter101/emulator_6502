@@ -144,6 +144,9 @@ impl<'a> CPU<'a> {
     }
 
     fn add_with_carry(&mut self, cycles: &mut i32, memory: &mut Memory, rhs: Byte) {
+        if self.status.decimal_mode {
+            println!("Dec at {:4x}", self.program_counter);
+        }
         assert!(!self.status.decimal_mode);
         let word_addition = self.a_register as Word + rhs as Word + self.status.carry as Word;
         let are_sign_bits_the_same =
@@ -1263,7 +1266,7 @@ impl<'a> CPU<'a> {
                     self.status.break_command = true;
                     self.status.unused = true;
                     let interrupt_vector = 0xFFFE;
-                    self.push_program_counter_to_stack(&mut cycles, memory);
+                    self.push_program_counter_plus_one_to_stack(&mut cycles, memory);
                     self.push_byte_to_stack(self.status.into_u8(), &mut cycles, memory);
                     self.status.interupt_disable = true;
                     self.program_counter =
@@ -1273,6 +1276,8 @@ impl<'a> CPU<'a> {
                 Instruction::InsRti => {
                     self.status = self.pop_byte_from_stack(&mut cycles, memory).into();
                     self.program_counter = self.pop_word_from_stack(&mut cycles, memory);
+                    self.status.break_command = false;
+                    self.status.unused = false;
                 }
                 _ => {
                     break;
@@ -1369,6 +1374,10 @@ impl<'a> CPU<'a> {
         self.push_word_to_stack(self.program_counter, cycles, memory);
     }
 
+    pub fn push_program_counter_plus_one_to_stack(&mut self, cycles: &mut i32, memory: &mut Memory) {
+        self.push_word_to_stack(self.program_counter + 1, cycles, memory);
+    }
+
     pub fn pop_word_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Word {
         let return_address =
             self.read_word_absolute(cycles, memory, self.stack_pointer_to_address() + 1);
@@ -1380,12 +1389,14 @@ impl<'a> CPU<'a> {
     pub fn push_byte_to_stack(&mut self, data: Byte, cycles: &mut i32, memory: &mut Memory) {
         memory[self.stack_pointer_to_address()] = data;
         *cycles -= 1;
-        self.stack_pointer -= 1;
+        // self.stack_pointer -= 1;
+        self.stack_pointer = self.stack_pointer.wrapping_sub(1);
         *cycles -= 1;
     }
 
     pub fn pop_byte_from_stack(&mut self, cycles: &mut i32, memory: &mut Memory) -> Byte {
-        self.stack_pointer += 1;
+        // self.stack_pointer += 1;
+        self.stack_pointer = self.stack_pointer.wrapping_add(1);
         let data = memory[self.stack_pointer_to_address()];
         *cycles -= 2;
         data

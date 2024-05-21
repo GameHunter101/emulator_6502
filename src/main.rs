@@ -96,14 +96,26 @@ fn main() {
     let file = std::fs::read(path).unwrap();
     slice.copy_from_slice(&file);
 
+    let mut last_print = std::time::Instant::now();
     loop {
         cpu.execute(1, &mut memory).unwrap();
-        // println!("0x{:4x}", cpu.program_counter);
-        println!("{}", cpu);
-        println!("Val at stack: {:04x}\n\n", &memory[cpu.stack_pointer_to_address()]);
-        if cpu.program_counter == 0x37e1 {
-            break;
+        let now = std::time::Instant::now();
+        if (now - last_print).as_millis() == 5 {
+            println!("0x{:4x}", cpu.program_counter);
+            last_print = now;
         }
+        /* println!("{}", cpu);
+        println!(
+            "Val at stack: {:04x}\n\n",
+            &memory[cpu.stack_pointer_to_address()]
+        );
+        println!(
+            "Val at stack + 1: {:04x}\n\n",
+            &memory[cpu.stack_pointer_to_address() + 1]
+        ); */
+        /* if cpu.program_counter == 0x3472 {
+            break;
+        } */
     }
 }
 
