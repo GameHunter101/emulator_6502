@@ -187,7 +187,8 @@ pub enum Instruction {
     InsBrk = 0x00,
     InsRti = 0x40,
     // Custom
-    InsDbg = 0x44,
+    InsDbgIm = 0x44,
+    InsDbgAbs = 0x43,
 }
 
 impl TryFrom<Byte> for Instruction {
@@ -376,7 +377,8 @@ impl TryFrom<Byte> for Instruction {
             0x00 => Ok(Self::InsBrk),
             0x40 => Ok(Self::InsRti),
             // Custom
-            0x44 => Ok(Self::InsDbg),
+            0x44 => Ok(Self::InsDbgIm),
+            0x43 => Ok(Self::InsDbgAbs),
             _ => Err(InstructionsError::InstructionDoesntExist(value)),
         }
     }

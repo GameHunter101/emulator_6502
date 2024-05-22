@@ -3,7 +3,7 @@ use cpu::{Byte, Word, CPU};
 use graphics_adapter::GraphicsAdapter;
 use instructions::{Instruction, InstructionsError};
 use memory::Memory;
-use sdl2::{event::{Event, WindowEvent}, pixels::Color, rect::Rect, render::Canvas, sys::Window};
+use sdl2::{event::{Event, WindowEvent}, pixels::Color, rect::Rect, render::Canvas};
 
 pub mod cpu;
 pub mod graphics_adapter;
@@ -51,10 +51,10 @@ fn main() {
     let mut cpu = CPU::new_graphics(graphics, Some(0xFF00));
     let mut memory = Memory::initialize();
 
-    let slice = &mut memory[0xFF00..0xFF0C];
     let path =
         std::path::Path::new(&std::env::current_dir().unwrap()).join("assembly\\test_code.prg");
     let file = std::fs::read(path).unwrap();
+    let slice = &mut memory[0xFF00..(0xFF00+file.len())];
     slice.copy_from_slice(&file);
 
     let mut pixel_width = canvas.window().size().0 / 16;
@@ -71,18 +71,14 @@ fn main() {
             "Val at stack + 1: {:04x}\n\n",
             &memory[cpu.stack_pointer_to_address() + 1]
         ); */
+        // println!("Mem: {:02x}_{:02x}", memory[0x0100_u16], memory[0x0101_u16]);
+        // println!("Mem: {}", memory[0x0001_u16]);
         cpu.execute(1, &mut memory);
 
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => {
                     break 'running;
-                }
-                Event::KeyDown {
-                    keycode: Some(keycode),
-                    ..
-                } => {
-                    println!("Key pressed: {keycode}");
                 }
                 Event::Window { win_event: WindowEvent::Resized(new_width, new_height), .. } => {
                     pixel_width = new_width as u32 / 16;
@@ -94,21 +90,13 @@ fn main() {
 
         let graphics = cpu.get_graphics().unwrap();
 
-        for (row_index, row) in graphics.get_pixels().iter().enumerate() {
-            for (col_index, pixel) in row.iter().enumerate() {
-                canvas.set_draw_color(*pixel);
-                canvas.fill_rect(Rect::new(
-                    (pixel_width * col_index as u32) as i32,
-                    (pixel_height * row_index as u32) as i32,
-                    pixel_width,
-                    pixel_height,
-                ));
-            }
-        }
+        graphics.render(&mut canvas, pixel_width, pixel_height);
 
         canvas.present();
 
         last_pixels = *graphics.get_pixels();
+
+        // std::thread::sleep(std::time::Duration::from_millis(30));
     }
 }
 

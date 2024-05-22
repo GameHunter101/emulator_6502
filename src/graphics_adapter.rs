@@ -1,6 +1,6 @@
 use crate::cpu::{Byte, Word, CPU};
 use crate::memory::Memory;
-use sdl2::{event::Event, pixels::Color, rect::Rect, render::Canvas, sys::Window};
+use sdl2::{event::Event, pixels::Color, rect::Rect, render::Canvas};
 
 #[derive(Debug, Clone, Copy)]
 pub struct GraphicsAdapter {
@@ -21,6 +21,9 @@ impl GraphicsAdapter {
     }
 
     pub fn get_data(&mut self, data: Word) {
+        // if data != 0 {
+        //     println!("Instruction: {:02b}_{:08b}_{:06b}", data >> 14, data >> 6 & 0b11111111, data & 0b111111);
+        // }
         let instruction = GraphicsInstruction::from(data);
         self.execute_instruction(instruction);
     }
@@ -49,7 +52,26 @@ impl GraphicsAdapter {
                 }
             },
             GraphicsInstructionType::Draw => {
-                self.pixels[parsed_coordinates[0] as usize][parsed_coordinates[1] as usize] = color;
+                self.pixels[parsed_coordinates[1] as usize][parsed_coordinates[0] as usize] = color;
+            }
+        }
+    }
+
+    pub fn render(
+        &self,
+        canvas: &mut Canvas<sdl2::video::Window>,
+        pixel_width: u32,
+        pixel_height: u32,
+    ) {
+        for (row_index, row) in self.pixels.iter().enumerate() {
+            for (col_index, pixel) in row.iter().enumerate() {
+                canvas.set_draw_color(*pixel);
+                canvas.fill_rect(Rect::new(
+                    (pixel_width * col_index as u32) as i32,
+                    (pixel_height * row_index as u32) as i32,
+                    pixel_width,
+                    pixel_height,
+                ));
             }
         }
     }
@@ -84,12 +106,11 @@ impl<const SIZE: usize> From<UNum<SIZE>> for Byte {
 
 impl<const SIZE: usize> From<Word> for UNum<SIZE> {
     fn from(value: Word) -> Self {
-        let mut bits: [bool; SIZE] = (0..SIZE)
+        let bits: [bool; SIZE] = (0..SIZE)
             .map(|i| value & 2_u16.pow(i as u32) != 0)
             .collect::<Vec<_>>()
             .try_into()
             .unwrap();
-        bits.reverse();
         UNum(bits)
     }
 }
@@ -119,7 +140,6 @@ impl From<Word> for GraphicsInstruction {
             false => GraphicsClearType::Screen,
         };
         let coordinates: [UNum<4>; 2] = [UNum::from(value >> 10), UNum::from(value >> 6)];
-        // dbg!(value & 0b11)
         let color: [UNum<2>; 3] = [
             UNum::from(value >> 4),
             UNum::from(value >> 2),
@@ -136,7 +156,7 @@ impl From<Word> for GraphicsInstruction {
 }
 
 mod graphics_test {
-    use crate::cpu::Word;
+    use crate::cpu::{Word, Byte};
 
     use super::{GraphicsInstruction, UNum};
 
@@ -144,7 +164,7 @@ mod graphics_test {
     fn test_unum_4() {
         let num: UNum<4> = UNum::from(1);
 
-        assert_eq!(num, UNum([false, false, false, true]));
+        assert_eq!(num, UNum([true, false, false, false]));
     }
 
     #[test]
@@ -152,6 +172,16 @@ mod graphics_test {
         let num: UNum<2> = UNum::from(3);
 
         assert_eq!(num, UNum([true, true]));
+    }
+
+    #[test]
+    fn test_unum_to_regular() {
+        let unum: UNum<4> = UNum([true, false, false, false]);
+        let experimental: Byte = unum.into();
+
+        let theoretical = 1;
+
+        assert_eq!(experimental, theoretical);
     }
 
     #[test]

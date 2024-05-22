@@ -1291,11 +1291,18 @@ impl CPU {
                     self.status.unused = false;
                 }
                 // Custom
-                Instruction::InsDbg => {
+                Instruction::InsDbgIm => {
                     let data = self.fetch_word(&mut cycles, memory);
                     if let Some(graphics) = self.graphics_adapter.as_mut() {
                         graphics.get_data(data);
-                        // println!("{:?}", graphics.get_pixels()[0][0]);
+                        cycles -= 1;
+                    }
+                }
+                Instruction::InsDbgAbs => {
+                    let absolute_address = self.fetch_word(&mut cycles, memory);
+                    let data = self.read_word_absolute(&mut cycles, memory, absolute_address);
+                    if let Some(graphics) = self.graphics_adapter.as_mut() {
+                        graphics.get_data(data);
                         cycles -= 1;
                     }
                 }
